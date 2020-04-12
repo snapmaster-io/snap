@@ -15,13 +15,13 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "snap",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "SnapMaster CLI",
+	Long: `
+SnapMaster is a tool that manages and runs snaps.  Snaps are workflows which tie 
+various dev and operational tools together.  Snaps define a trigger (an event such 
+as a webhook) and a set of actions (anything that can be executed over a REST API).
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+snap is the SnapMaster CLI.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
