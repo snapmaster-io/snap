@@ -1,4 +1,4 @@
-module snap
+module github.com/snapmaster-io/snap
 
 go 1.14
 
