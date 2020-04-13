@@ -5,8 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -43,35 +41,51 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.snap.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/snap/config.json)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	// set some default values
+	viper.SetDefault("ClientID", "f9BSuAhmF8dmUtJWZyjAVJbGJWQMKsMW")
+	viper.SetDefault("APIURL", "https://dev.snapmaster.io")
+	viper.SetDefault("AuthDomain", "snapmaster-dev.auth0.com")
+	viper.SetDefault("RedirectURL", "http://localhost:8085")
+
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Find home directory.
-		home, err := homedir.Dir()
+		home, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".snap" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".snap")
+		// Search config in $HOME/.config/snap/config
+		viper.AddConfigPath(fmt.Sprintf("%s/.config/snap", home))
+		viper.SetConfigName("config.json")
+		viper.SetConfigType("json")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.SetEnvPrefix("snap")
+	viper.AutomaticEnv() // read in environment variables that match, prefixed with "SNAP_"
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	// read in a config file, if found
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error
+		} else {
+			// Config file was found but another error was produced
+			fmt.Printf("Config file was found, error: %s\n", err)
+		}
+	} else {
+		// do not report non-error condition
+		//fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/snapmaster-io/snap/cmd"
+import "github.com/snapmaster-io/snap/pkg/cmd"
 
 func main() {
 	cmd.Execute()
