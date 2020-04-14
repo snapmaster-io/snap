@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/config"
@@ -12,26 +11,22 @@ import (
 
 // initCmd represents the login command
 var initCmd = &cobra.Command{
-	Use:   "init [API server URL] [Client ID] [Auth Domain]",
+	Use:   "init",
 	Short: "Initialize the snap CLI environment",
 	Long: `Initialize the snap CLI environment.
 
-If no arguments are specified, initializes the snap CLI to the public SnapMaster service.`,
+If no flags are specified, initializes the snap CLI to point to the public SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			viper.Set("APIURL", args[0])
-		}
-		if len(args) > 1 {
-			viper.Set("ClientID", args[1])
-		}
-		if len(args) > 2 {
-			viper.Set("AuthDomain", args[2])
-		}
+		var err error
 
 		// Create the config file in case the path hasn't been created yet
-		filename, err := config.WriteConfigFile("config.json", []byte(""))
-		if err != nil {
-			log.Fatal("could not write config file")
+		filename := viper.ConfigFileUsed()
+		if len(filename) < 1 {
+			filename, err = config.WriteConfigFile("config.json", []byte(""))
+			if err != nil {
+				fmt.Println("snap: could not write config file to $HOME/.config/snap/config.json")
+				os.Exit(1)
+			}
 		}
 
 		// use viper to write the config to the file
@@ -48,8 +43,11 @@ If no arguments are specified, initializes the snap CLI to the public SnapMaster
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	// initCmd.Flags().StringP("bar", "b", "", "Bar")
+	initCmd.Flags().StringP("api-url", "", "", "API URL (defaults to https://dev.snapmaster.io)")
+	initCmd.Flags().StringP("client-id", "", "", "Auth0 Client ID (required for any non-default API URL)")
+	initCmd.Flags().StringP("auth-domain", "", "", "Auth0 Auth Domain (defaults to snapmaster-dev.auth0.com)")
+
+	viper.BindPFlag("APIURL", initCmd.Flags().Lookup("api-url"))
+	viper.BindPFlag("ClientID", initCmd.Flags().Lookup("client-id"))
+	viper.BindPFlag("AuthDomain", initCmd.Flags().Lookup("auth-domain"))
 }

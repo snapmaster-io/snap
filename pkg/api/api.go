@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +10,7 @@ import (
 )
 
 // Get calls the API at the relative path, and returns the data retrieved or an error
-func Get(path string) ([]map[string]interface{}, error) {
+func Get(path string) ([]byte, error) {
 	// retrieve access token
 	accessToken := viper.GetString("AccessToken")
 	if len(accessToken) < 1 {
@@ -26,26 +25,30 @@ func Get(path string) ([]map[string]interface{}, error) {
 		os.Exit(1)
 	}
 
-	// create the request and execute it
-	req, _ := http.NewRequest("GET", url)
+	// construct the URL and request
+	url := apiURL + path
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Printf("snap: could not create request with URL %s: %s\n", url, err)
+		os.Exit(1)
+	}
+
+	// add headers and execute the request
 	req.Header.Add("content-type", "application/json")
-	req.Header.Add("authorization", fmt.Sprintf("Bearer: %s", accessToken))
+	req.Header.Add("authorization", fmt.Sprintf("Bearer %s", accessToken))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		fmt.Printf("snap: could not execute HTTP request with URL %s\n", url, err)
+		os.Exit(1)
 	}
 
 	// process the response
 	defer res.Body.Close()
-	var responseData []map[string]interface{}
-	body, _ := ioutil.ReadAll(res.Body)
-
-	// unmarshal the json into a string map
-	err = json.Unmarshal(body, &responseData)
+	contents, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Printf("snap: error unmarshalling JSON: %s\n", err)
+		fmt.Printf("snap: error reading HTTP response from HTTP request against %s\n", url, err)
 		os.Exit(1)
 	}
 
-	return responseData, nil
+	return contents, nil
 }

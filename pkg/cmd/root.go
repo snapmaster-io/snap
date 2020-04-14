@@ -42,6 +42,7 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config/snap/config.json)")
+	rootCmd.PersistentFlags().StringP("format", "f", "table", "return output of command as one of {table, json}")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
