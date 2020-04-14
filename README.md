@@ -1,14 +1,14 @@
-![SnapMaster](public/SnapMaster-logo-220.png)
+![SnapMaster](https://github.com/snapmaster-io/snapmaster/blob/master/public/SnapMaster-logo-220.png)
 # SnapMaster 
 ## Master your DevOps toolchain
 
 SnapMaster is the definitive DevOps integration platform.  
 
-snap is the command-line interface (CLI) for SnapMaster.
+`snap` is the command-line interface (CLI) for SnapMaster.
 
 ## Implementation notes
 
-snap is written in golang and communicates with the [SnapMaster-API](https://github.com/snapmaster-io/snapmaster-api) as a back-end.  It utilizes [Cobra](https://github.com/spf13/cobra) for command processing and [Viper](https://github.com/spf13/viper) for config abstraction.
+`snap` is written in golang and communicates with the [SnapMaster-API](https://github.com/snapmaster-io/snapmaster-api) as a back-end.  It utilizes [Cobra](https://github.com/spf13/cobra) for command processing and [Viper](https://github.com/spf13/viper) for config abstraction.
 
 Since SnapMaster currently uses [Auth0](https://auth0.com) for its authentication and authorization, an important part of snap is handling the Proof Key for Code Exchange ([PKCE](https://tools.ietf.org/html/rfc7636)) OAuth2 flow.  
 
@@ -46,5 +46,6 @@ Since SnapMaster currently uses [Auth0](https://auth0.com) for its authenticatio
 ## Other commands
 
 `snap snaps list` will list all snaps in the user's account
+
 `snap snaps get {snapname}` will get the description of a snap
 
