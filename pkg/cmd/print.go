@@ -19,6 +19,9 @@ type ActiveSnap struct {
 	ExecutionCounter int `json:"executionCounter"`
 }
 
+// what style to use for all tables
+var tableStyle = table.StyleColoredCyanWhiteOnBlack
+
 func printJSON(response []byte) {
 	// pretty-print the json
 	output := &bytes.Buffer{}
@@ -42,7 +45,7 @@ func printActiveSnap(response []byte) {
 	json.Unmarshal(intermediateEntity, &entity)
 
 	// TODO: sort / alphabetize the keys
-	
+
 	// write out the table of properties
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
@@ -50,6 +53,7 @@ func printActiveSnap(response []byte) {
 	for field, value := range entity {
 		t.AppendRow(table.Row{field, value})
 	}
+	t.SetStyle(tableStyle)
 	t.Render()
 }
 
@@ -60,10 +64,12 @@ func printActiveSnapsTable(response []byte) {
 	// write out the table
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Active Snaps")
 	t.AppendHeader(table.Row{"Active Snap ID", "Snap ID", "State", "Trigger", "Executions", "Errors"})
 	for _, snap := range snaps {
 		t.AppendRow(table.Row{snap["activeSnapId"], snap["snapId"], snap["state"], snap["trigger"], snap["executionCounter"], snap["errorCounter"]})
 	}
+	t.SetStyle(tableStyle)
 	t.Render()
 }
 
@@ -74,9 +80,11 @@ func printSnapsTable(response []byte) {
 	// write out the table
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Snaps")
 	t.AppendHeader(table.Row{"Snap ID", "Description", "Trigger"})
 	for _, snap := range snaps {
 		t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["trigger"]})
 	}
+	t.SetStyle(tableStyle)
 	t.Render()
 }
