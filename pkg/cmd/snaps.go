@@ -28,7 +28,10 @@ var deleteSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
-		processSnapCommand(snapID, "delete")
+		data := make(map[string]interface{})
+		data["action"] = "delete"
+		data["snapId"] = snapID
+		processSnapCommand(data)
 	},
 }
 
@@ -40,7 +43,10 @@ var forkSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
-		processSnapCommand(snapID, "fork")
+		data := make(map[string]interface{})
+		data["action"] = "fork"
+		data["snapId"] = snapID
+		processSnapCommand(data)
 	},
 }
 
@@ -105,20 +111,51 @@ var listSnapsCmd = &cobra.Command{
 	},
 }
 
+// publishSnapCmd represents the publish snap subcommand
+var publishSnapCmd = &cobra.Command{
+	Use:   "publish",
+	Short: "Makes a user's snap public and discoverable by others in the gallery",
+	Long:  `Makes a user's snap public and discoverable by others in the gallery.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve snapID as the first argument
+		snapID := args[0]
+		data := make(map[string]interface{})
+		data["action"] = "edit"
+		data["snapId"] = snapID
+		data["private"] = false
+		processSnapCommand(data)
+	},
+}
+
+// unpublishSnapCmd represents the publish snap subcommand
+var unpublishSnapCmd = &cobra.Command{
+	Use:   "unpublish",
+	Short: "Makes a user's snap private",
+	Long:  `Makes a user's snap private.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve snapID as the first argument
+		snapID := args[0]
+		data := make(map[string]interface{})
+		data["action"] = "edit"
+		data["snapId"] = snapID
+		data["private"] = true
+		processSnapCommand(data)
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(snapsCmd)
 	snapsCmd.AddCommand(deleteSnapCmd)
 	snapsCmd.AddCommand(forkSnapCmd)
 	snapsCmd.AddCommand(getSnapCmd)
 	snapsCmd.AddCommand(listSnapsCmd)
+	snapsCmd.AddCommand(publishSnapCmd)
+	snapsCmd.AddCommand(unpublishSnapCmd)
 }
 
-func processSnapCommand(snapID string, action string) {
+func processSnapCommand(data map[string]interface{}) {
 	path := "/snaps"
-
-	data := make(map[string]string)
-	data["action"] = action
-	data["snapId"] = snapID
+	action := data["action"]
 	payload, err := json.Marshal(data)
 	if err != nil {
 		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)

@@ -128,6 +128,11 @@ func printSnapStatus(response []byte) {
 	json.Unmarshal(response, &snapStatus)
 
 	fmt.Printf("snap: operation status: %s\n\n", snapStatus.Message)
+	if snapStatus.Message == "error" {
+		return
+	}
+
+	// since the operation was successful, get the snap
 	snap := snapStatus.Snap
 
 	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
@@ -159,7 +164,7 @@ func printSnapsTable(response []byte) {
 	t.SetTitle("Snaps")
 	t.AppendHeader(table.Row{"Snap ID", "Description", "Trigger"})
 	for _, snap := range snaps {
-		t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["trigger"]})
+		t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["provider"]})
 	}
 	t.SetStyle(tableStyle)
 	t.Render()
