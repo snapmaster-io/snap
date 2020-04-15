@@ -49,3 +49,4 @@ Since SnapMaster currently uses [Auth0](https://auth0.com) for its authenticatio
 
 `snap snaps get {snapname}` will get the description of a snap
 
+`snap snaps list --format=json | jq '.[] | .snapId'` will grab the user's snaps in JSON format and pipe through jq, returning a list of the snapId's 
