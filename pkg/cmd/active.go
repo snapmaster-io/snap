@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -9,26 +8,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// snapsCmd represents the snaps command
-var snapsCmd = &cobra.Command{
-	Use:   "snaps [subcommand]",
-	Short: "Manage the user's snaps",
-	Long:  `Manage the user's snaps.`,
+// activeSnapsCmd represents the snaps command
+var activeSnapsCmd = &cobra.Command{
+	Use:   "active [subcommand]",
+	Short: "Manage the user's active snaps",
+	Long:  `Manage the user's active snaps.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 		os.Exit(1)
 	},
 }
 
-// listSnapsCmd represents the list snaps subcommand
-var listSnapsCmd = &cobra.Command{
+// listActiveSnapsCmd represents the list snaps subcommand
+var listActiveSnapsCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List the user's snaps",
-	Long:  `List the user's snaps.`,
+	Short: "List the user's active snaps",
+	Long:  `List the user's active snaps.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// execute the API call
-		response, err := api.Get("/snaps")
+		response, err := api.Get("/activesnaps")
 		if err != nil {
 			fmt.Printf("snap: could not retrieve data: %s", err)
 			os.Exit(1)
@@ -41,7 +40,7 @@ var listSnapsCmd = &cobra.Command{
 		}
 
 		if format == "table" {
-			printSnapsTable(response)
+			printActiveSnapsTable(response)
 			return
 		}
 
@@ -50,16 +49,16 @@ var listSnapsCmd = &cobra.Command{
 	},
 }
 
-// listSnapsCmd represents the get snap subcommand
-var getSnapCmd = &cobra.Command{
-	Use:   "get [snap ID]",
-	Short: "Get a description of a snap",
+// getActiveSnapCmd represents the get active snap subcommand
+var getActiveSnapCmd = &cobra.Command{
+	Use:   "get [active snap ID]",
+	Short: "Get the state of an active snap",
 	Long:  `Get a description of a snap.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
-		snapID := args[0]
-		path := fmt.Sprintf("/snaps/%s", snapID)
+		activeSnapID := args[0]
+		path := fmt.Sprintf("/activesnaps/%s", activeSnapID)
 
 		// execute the API call
 		response, err := api.Get(path)
@@ -74,17 +73,14 @@ var getSnapCmd = &cobra.Command{
 			return
 		}
 
-		var snap map[string]string
-		json.Unmarshal(response, &snap)
-		text := snap["text"]
-		fmt.Printf(text)
+		printActiveSnap(response)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(snapsCmd)
-	snapsCmd.AddCommand(listSnapsCmd)
-	snapsCmd.AddCommand(getSnapCmd)
+	rootCmd.AddCommand(activeSnapsCmd)
+	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
+	activeSnapsCmd.AddCommand(getActiveSnapCmd)
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
