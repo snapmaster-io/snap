@@ -33,7 +33,7 @@ var deactivateSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
-		processCommand(activeSnapID, "deactivate")
+		processActiveCommand(activeSnapID, "deactivate")
 	},
 }
 
@@ -104,7 +104,7 @@ var pauseActiveSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
-		processCommand(activeSnapID, "pause")
+		processActiveCommand(activeSnapID, "pause")
 	},
 }
 
@@ -117,7 +117,7 @@ var resumeActiveSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
-		processCommand(activeSnapID, "resume")
+		processActiveCommand(activeSnapID, "resume")
 	},
 }
 
@@ -128,14 +128,9 @@ func init() {
 	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
 	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// snapsCmd.PersistentFlags().String("foo", "", "A help for foo")
-	// snapsCmd.Flags().StringP("username", "u", "", "Username")
 }
 
-func processCommand(activeSnapID string, action string) {
+func processActiveCommand(activeSnapID string, action string) {
 	path := "/activesnaps"
 
 	data := make(map[string]string)

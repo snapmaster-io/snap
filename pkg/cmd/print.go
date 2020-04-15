@@ -25,6 +25,20 @@ type ActiveSnapStatus struct {
 	ActiveSnap ActiveSnap `json:"activeSnap"`
 }
 
+// Snap defines the fields to print for a snap
+type Snap struct {
+	SnapID string `json:"snapId"`
+	Description string `json:"description"`
+	Provider string `json:"provider"`
+	Private bool `json:"private"`
+}
+
+// SnapStatus defines the fields to unmarshal from a create/fork/publish/unpublish operation
+type SnapStatus struct {
+	Message string `json:"message"`
+	Snap Snap `json:"snap"`
+}
+
 // what style to use for all tables
 var tableStyle = table.StyleColoredCyanWhiteOnBlack
 
@@ -107,12 +121,32 @@ func printActiveSnapsTable(response []byte) {
 	t.Render()
 }
 
-func printStatus(response []byte) {
-	var status map[string]string
-	json.Unmarshal(response, &status)
+func printSnapStatus(response []byte) {
+	// unmarshal into the SnapStatus struct, to get "Message" and 
+	// flatten the property set of the Snap
+	var snapStatus SnapStatus
+	json.Unmarshal(response, &snapStatus)
 
-	// print the message field as the operation status
-	fmt.Printf("snap: operation status: %s\n", string(status["message"]))
+	fmt.Printf("snap: operation status: %s\n\n", snapStatus.Message)
+	snap := snapStatus.Snap
+
+	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
+	intermediateEntity, _ := json.Marshal(snap)
+	var entity map[string]interface{}
+	json.Unmarshal(intermediateEntity, &entity)
+
+	// TODO: sort / alphabetize the keys
+
+	// write out the table of properties
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Snap Values")
+	t.AppendHeader(table.Row{"Field", "Value"})
+	for field, value := range entity {
+		t.AppendRow(table.Row{field, value})
+	}
+	t.SetStyle(tableStyle)
+	t.Render()
 }
 
 func printSnapsTable(response []byte) {
@@ -129,4 +163,12 @@ func printSnapsTable(response []byte) {
 	}
 	t.SetStyle(tableStyle)
 	t.Render()
+}
+
+func printStatus(response []byte) {
+	var status map[string]string
+	json.Unmarshal(response, &status)
+
+	// print the message field as the operation status
+	fmt.Printf("snap: operation status: %s\n", string(status["message"]))
 }
