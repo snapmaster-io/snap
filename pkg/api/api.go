@@ -1,7 +1,9 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -11,6 +13,16 @@ import (
 
 // Get calls the API at the relative path, and returns the data retrieved or an error
 func Get(path string) ([]byte, error) {
+	return call(path, "GET", nil)
+}
+
+// Post calls the API at the relative path with the payload, and returns the data retrieved or an error
+func Post(path string, payload []byte) ([]byte, error) {
+	r := bytes.NewReader(payload)
+	return call(path, "POST", r)
+}
+
+func call(path string, verb string, payload interface{ io.Reader }) ([]byte, error) {
 	// retrieve access token
 	accessToken := viper.GetString("AccessToken")
 	if len(accessToken) < 1 {
@@ -27,7 +39,7 @@ func Get(path string) ([]byte, error) {
 
 	// construct the URL and request
 	url := apiURL + path
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(verb, url, payload)
 	if err != nil {
 		fmt.Printf("snap: could not create request with URL %s: %s\n", url, err)
 		os.Exit(1)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -77,13 +78,69 @@ var getActiveSnapCmd = &cobra.Command{
 	},
 }
 
+// pauseActiveSnapCmd represents the pause active snap subcommand
+var pauseActiveSnapCmd = &cobra.Command{
+	Use:   "pause [active snap ID]",
+	Short: "Pause an active snap",
+	Long:  `Pause an active snap.`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve snapID as the first argument
+		activeSnapID := args[0]
+		processCommand(activeSnapID, "pause")
+	},
+}
+
+// resumeActiveSnapCmd represents the resume active snap subcommand
+var resumeActiveSnapCmd = &cobra.Command{
+	Use:   "resume [active snap ID]",
+	Short: "Resume an active snap",
+	Long:  `Resume an active snap.`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve snapID as the first argument
+		activeSnapID := args[0]
+		processCommand(activeSnapID, "resume")
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(activeSnapsCmd)
 	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapCmd)
+	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
+	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// snapsCmd.PersistentFlags().String("foo", "", "A help for foo")
 	// snapsCmd.Flags().StringP("username", "u", "", "Username")
+}
+
+func processCommand(activeSnapID string, action string) {
+	path := "/activesnaps"
+
+	data := make(map[string]string)
+	data["action"] = action
+	data["snapId"] = activeSnapID
+	payload, err := json.Marshal(data)
+	if err != nil {
+		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)
+		os.Exit(1)
+	}
+
+	// execute the API call
+	response, err := api.Post(path, payload)
+	if err != nil {
+		fmt.Printf("snap: could not retrieve data: %s\n", err)
+		os.Exit(1)
+	}
+
+	format, err := rootCmd.PersistentFlags().GetString("format")
+	if format == "json" {
+		printJSON(response)
+		return
+	}
+
+	printActiveSnapStatus(response)
 }

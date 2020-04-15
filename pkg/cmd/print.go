@@ -19,6 +19,12 @@ type ActiveSnap struct {
 	ExecutionCounter int `json:"executionCounter"`
 }
 
+// ActiveSnapStatus defines the fields to unmarshal from a pause/resume operation
+type ActiveSnapStatus struct {
+	Message string `json:"message"`
+	ActiveSnap ActiveSnap `json:"activeSnap"`
+}
+
 // what style to use for all tables
 var tableStyle = table.StyleColoredCyanWhiteOnBlack
 
@@ -49,6 +55,34 @@ func printActiveSnap(response []byte) {
 	// write out the table of properties
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Field", "Value"})
+	for field, value := range entity {
+		t.AppendRow(table.Row{field, value})
+	}
+	t.SetStyle(tableStyle)
+	t.Render()
+}
+
+func printActiveSnapStatus(response []byte) {
+	// unmarshal into the ActiveSnapStatus struct, to get "Message" and 
+	// flatten the property set of the ActiveSnap
+	var activeSnapStatus ActiveSnapStatus
+	json.Unmarshal(response, &activeSnapStatus)
+
+	fmt.Printf("snap: operation status: %s\n\n", activeSnapStatus.Message)
+	activeSnap := activeSnapStatus.ActiveSnap
+
+	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
+	intermediateEntity, _ := json.Marshal(activeSnap)
+	var entity map[string]interface{}
+	json.Unmarshal(intermediateEntity, &entity)
+
+	// TODO: sort / alphabetize the keys
+
+	// write out the table of properties
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Active Snap Values")
 	t.AppendHeader(table.Row{"Field", "Value"})
 	for field, value := range entity {
 		t.AppendRow(table.Row{field, value})
