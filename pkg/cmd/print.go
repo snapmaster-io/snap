@@ -107,6 +107,14 @@ func printActiveSnapsTable(response []byte) {
 	t.Render()
 }
 
+func printStatus(response []byte) {
+	var status map[string]string
+	json.Unmarshal(response, &status)
+
+	// print the message field as the operation status
+	fmt.Printf("snap: operation status: %s\n", string(status["message"]))
+}
+
 func printSnapsTable(response []byte) {
 	var snaps []map[string]string
 	json.Unmarshal(response, &snaps)

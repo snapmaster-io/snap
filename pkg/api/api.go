@@ -41,7 +41,7 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	url := apiURL + path
 	req, err := http.NewRequest(verb, url, payload)
 	if err != nil {
-		fmt.Printf("snap: could not create request with URL %s: %s\n", url, err)
+		fmt.Printf("snap: could not create request with URL %s\nerror: %s\n", url, err)
 		os.Exit(1)
 	}
 
@@ -50,7 +50,7 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	req.Header.Add("authorization", fmt.Sprintf("Bearer %s", accessToken))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("snap: could not execute HTTP request with URL %s\n", url, err)
+		fmt.Printf("snap: could not execute HTTP request with URL %s\nerror: %s\n", url, err)
 		os.Exit(1)
 	}
 
@@ -58,7 +58,7 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	defer res.Body.Close()
 	contents, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Printf("snap: error reading HTTP response from HTTP request against %s\n", url, err)
+		fmt.Printf("snap: error reading HTTP response from HTTP request against %s\nerror: %s\n", url, err)
 		os.Exit(1)
 	}
 

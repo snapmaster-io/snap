@@ -35,7 +35,7 @@ If no flags are specified, initializes the snap CLI to point to the public SnapM
 			fmt.Println(err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("snap: created config file in %s\n", filename)
+			fmt.Printf("snap: updated config file %s\n", filename)
 		}
 	},
 }

@@ -20,6 +20,51 @@ var activeSnapsCmd = &cobra.Command{
 	},
 }
 
+// deactivateSnapCmd represents the deactivate snap subcommand
+var deactivateSnapCmd = &cobra.Command{
+	Use:   "deactivate [active snap ID]",
+	Short: "Deactivate a snap",
+	Long: `Deactivate a snap.
+	
+	Note that once an active snap is deactivated, ALL LOGS ARE DELETED.
+	
+	If you want to stop the active snap from triggering, use the pause subcommand.`,
+	Args: cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve activeSnapID as the first argument
+		activeSnapID := args[0]
+		processCommand(activeSnapID, "deactivate")
+	},
+}
+
+// getActiveSnapCmd represents the get active snap subcommand
+var getActiveSnapCmd = &cobra.Command{
+	Use:   "get [active snap ID]",
+	Short: "Get the state of an active snap",
+	Long:  `Get a description of a snap.`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve activeSnapID as the first argument
+		activeSnapID := args[0]
+		path := fmt.Sprintf("/activesnaps/%s", activeSnapID)
+
+		// execute the API call
+		response, err := api.Get(path)
+		if err != nil {
+			fmt.Printf("snap: could not retrieve data: %s", err)
+			os.Exit(1)
+		}
+
+		format, err := rootCmd.PersistentFlags().GetString("format")
+		if format == "json" {
+			printJSON(response)
+			return
+		}
+
+		printActiveSnap(response)
+	},
+}
+
 // listActiveSnapsCmd represents the list snaps subcommand
 var listActiveSnapsCmd = &cobra.Command{
 	Use:   "list",
@@ -50,34 +95,6 @@ var listActiveSnapsCmd = &cobra.Command{
 	},
 }
 
-// getActiveSnapCmd represents the get active snap subcommand
-var getActiveSnapCmd = &cobra.Command{
-	Use:   "get [active snap ID]",
-	Short: "Get the state of an active snap",
-	Long:  `Get a description of a snap.`,
-	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		// retrieve snapID as the first argument
-		activeSnapID := args[0]
-		path := fmt.Sprintf("/activesnaps/%s", activeSnapID)
-
-		// execute the API call
-		response, err := api.Get(path)
-		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
-			os.Exit(1)
-		}
-
-		format, err := rootCmd.PersistentFlags().GetString("format")
-		if format == "json" {
-			printJSON(response)
-			return
-		}
-
-		printActiveSnap(response)
-	},
-}
-
 // pauseActiveSnapCmd represents the pause active snap subcommand
 var pauseActiveSnapCmd = &cobra.Command{
 	Use:   "pause [active snap ID]",
@@ -85,7 +102,7 @@ var pauseActiveSnapCmd = &cobra.Command{
 	Long:  `Pause an active snap.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// retrieve snapID as the first argument
+		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
 		processCommand(activeSnapID, "pause")
 	},
@@ -98,7 +115,7 @@ var resumeActiveSnapCmd = &cobra.Command{
 	Long:  `Resume an active snap.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// retrieve snapID as the first argument
+		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
 		processCommand(activeSnapID, "resume")
 	},
@@ -106,8 +123,9 @@ var resumeActiveSnapCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(activeSnapsCmd)
-	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
+	activeSnapsCmd.AddCommand(deactivateSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapCmd)
+	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
 	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
 
@@ -142,5 +160,9 @@ func processCommand(activeSnapID string, action string) {
 		return
 	}
 
-	printActiveSnapStatus(response)
+	if action != "deactivate" {
+		printActiveSnapStatus(response)
+	} else {
+		printStatus(response)
+	}
 }
