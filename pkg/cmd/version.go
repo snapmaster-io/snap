@@ -3,7 +3,7 @@ package version
 import (
 	"fmt"
 
-	"github.com/snapmaster-io/snap/version"
+	"github.com/snapmaster-io/snap/pkg/version"
 	"github.com/spf13/cobra"
 )
 
