@@ -22,7 +22,7 @@ Since SnapMaster currently uses [Auth0](https://auth0.com) for its authenticatio
 
 ## Building snap
 
-`go build` in the root directory
+`make` in the root directory will invoke `go build -o bin/snap` and embed the latest git hash into the version.
 
 ## Help
 
