@@ -41,7 +41,7 @@ var deactivateSnapCmd = &cobra.Command{
 var getActiveSnapCmd = &cobra.Command{
 	Use:   "get [active snap ID]",
 	Short: "Get the state of an active snap",
-	Long:  `Get a description of a snap.`,
+	Long:  `Get the state of an active snap.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve activeSnapID as the first argument
@@ -62,6 +62,57 @@ var getActiveSnapCmd = &cobra.Command{
 		}
 
 		printActiveSnap(response)
+	},
+}
+
+// getActiveSnapLogsCmd represents the get active snap logs subcommand
+var getActiveSnapLogsCmd = &cobra.Command{
+	Use: `logs [active snap ID] [flags]
+  snap active logs [active snap ID] details [log ID] --format={stdout, stderr} (default "stdout")`,
+	Short: "Get the logs of an activated snap",
+	Long: `Get the logs of an activated snap.
+
+snap active logs [active snap ID] will return a table (or json) with all log entries for this active snap.
+
+You can obtain a log ID for a specific log entry using this command.
+
+snap active logs [active snap ID] details [log ID] will return the output for each action - either stdout or stderr.
+	`,
+	Args: cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve activeSnapID as the first argument
+		activeSnapID := args[0]
+		logID := ""
+
+		// validate second form of command (logs [activeSnapID] details [logID])
+		if len(args) > 2 {
+			if args[1] == "details" {
+				logID = args[2]
+			} else {
+				cmd.Help()
+				os.Exit(1)
+			}
+		}
+
+		// execute the API call
+		path := fmt.Sprintf("/logs/%s", activeSnapID)
+		response, err := api.Get(path)
+		if err != nil {
+			fmt.Printf("snap: could not retrieve data: %s", err)
+			os.Exit(1)
+		}
+
+		format, err := rootCmd.PersistentFlags().GetString("format")
+		if format == "json" {
+			printJSON(response)
+			return
+		}
+
+		if len(args) > 2 && logID != "" {
+			printActiveSnapLogDetails(response, logID, format)
+		} else {
+			printActiveSnapLogs(response)
+		}
 	},
 }
 
@@ -125,6 +176,8 @@ func init() {
 	rootCmd.AddCommand(activeSnapsCmd)
 	activeSnapsCmd.AddCommand(deactivateSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapCmd)
+	activeSnapsCmd.AddCommand(getActiveSnapLogsCmd)
+	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
 	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
 	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
@@ -160,4 +213,22 @@ func processActiveCommand(activeSnapID string, action string) {
 	} else {
 		printStatus(response)
 	}
+}
+
+func processGetLogDetailsCommand(activeSnapID string, logID string) {
+	// execute the API call
+	path := fmt.Sprintf("/logs/%s/%s", activeSnapID, logID)
+	response, err := api.Get(path)
+	if err != nil {
+		fmt.Printf("snap: could not retrieve data: %s", err)
+		os.Exit(1)
+	}
+
+	format, err := rootCmd.PersistentFlags().GetString("format")
+	if format == "json" {
+		printJSON(response)
+		return
+	}
+
+	printActiveSnapLogDetails(response, logID, format)
 }
