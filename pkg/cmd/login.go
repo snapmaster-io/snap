@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/snapmaster-io/snap/pkg/auth"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,17 +25,22 @@ If no server is specified, login to the public SnapMaster service.`,
 	},
 }
 
+// logoutCmd represents the logout command
+var logoutCmd = &cobra.Command{
+	Use:   "logout",
+	Short: "Log out of a SnapMaster deployment.",
+	Long:  `Log out of a SnapMaster deployment.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		viper.Set("AccessToken", "")
+		viper.Set("Name", "")
+		viper.Set("Email", "")
+		viper.WriteConfig()
+
+		fmt.Println("snap: no logged in user.")
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(loginCmd)
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// loginCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// no need for command-line args anymore!  replaced with OAuth2 PKCE flow
-	/*
-		loginCmd.Flags().StringP("username", "u", "", "Username")
-		loginCmd.Flags().StringP("password", "p", "", "Password")
-		loginCmd.Flags().BoolP("password-stdin", "", false, "Take the password from stdin")
-	*/
+	rootCmd.AddCommand(logoutCmd)
 }

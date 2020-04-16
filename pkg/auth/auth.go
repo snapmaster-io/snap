@@ -13,6 +13,7 @@ import (
 
 	cv "github.com/nirasan/go-oauth-pkce-code-verifier"
 	"github.com/skratchdot/open-golang/open"
+	"github.com/snapmaster-io/snap/pkg/config"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
@@ -78,9 +79,18 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		// set the access token
 		viper.Set("AccessToken", accessToken)
 
+		// Create the config file in case the path hasn't been created yet
+		filename := viper.ConfigFileUsed()
+		if len(filename) < 1 {
+			filename, err = config.WriteConfigFile("config.json", []byte(""))
+			if err != nil {
+				fmt.Println("snap: could not write config file to $HOME/.config/snap/config.json")
+				os.Exit(1)
+			}
+		}
+
 		// store the config
 		err = viper.WriteConfig()
-		//_, err = config.WriteConfigFile("auth.json", token)
 		if err != nil {
 			fmt.Println("snap: could not write config file")
 			io.WriteString(w, "Error: could not store access token\n")
