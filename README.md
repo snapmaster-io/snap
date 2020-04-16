@@ -39,13 +39,43 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 `snap login` will initiate the login flow.  Note that you must have an account provisioned already on the SnapMaster web app for this to work.  
 
-### Other commands
+### Snap management
+
+#### Interacting with the Gallery
+
+`snap gallery` will retrieve all the snaps in the gallery
+
+`snap gallery get {snapname}` will get the description of a snap
+
+`snap snaps fork {snapname}` will fork a public snap into the user's account
+
+#### Managing your own snaps
 
 `snap snaps list` will list all snaps in the user's account
 
 `snap snaps get {snapname}` will get the description of a snap
 
 `snap snaps list --format=json | jq '.[] | .snapId'` will grab the user's snaps in JSON format and pipe through jq, returning a list of the snapId's 
+
+`snap snaps delete {snapname}` will delete a snap from the user's account
+
+`snap snaps publish/unpublish {snapname}` will make a snap public (discoverable) or switch it back to private
+
+#### Activating and managing active snaps
+
+`snap active list` will list all activated snaps 
+
+`snap active get {active snap ID}` will get information about the active snap
+
+`snap active pause/resume {active snap ID}` will pause or resume an active snap
+
+`snap active deactivate {active snap ID}` will deactivate and active snap and REMOVE ALL LOGS
+
+#### Interacting with logs
+
+`snap logs` will retrieve all logs from all active snaps
+
+`snap logs details {logID}` will retrieve log details for a particular log entry
 
 ## Source directory structure
 
