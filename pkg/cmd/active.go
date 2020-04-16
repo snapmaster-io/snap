@@ -177,7 +177,6 @@ func init() {
 	activeSnapsCmd.AddCommand(deactivateSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapLogsCmd)
-	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
 	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
 	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)

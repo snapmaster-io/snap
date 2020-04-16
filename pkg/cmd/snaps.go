@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
@@ -20,11 +21,36 @@ var snapsCmd = &cobra.Command{
 	},
 }
 
+// createSnapCmd represents the create snap subcommand
+var createSnapCmd = &cobra.Command{
+	Use:   "create [definition-file.yaml]",
+	Short: "Create a snap in the user's namespace from a yaml definition file",
+	Long:  `Create a snap in the user's namespace from a yaml definition file.`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		// retrieve yaml file as the first argument
+		snapFile := args[0]
+
+		// read the file contents
+		contents, err := ioutil.ReadFile(snapFile)
+		if err != nil {
+			fmt.Printf("snap: could not read snap definition file %s\nerror: %s\n", snapFile, err)
+			os.Exit(1)
+		}
+
+		data := make(map[string]interface{})
+		data["action"] = "create"
+		data["definition"] = string(contents)
+		processSnapCommand(data)
+	},
+}
+
 // deleteSnapCmd represents the delete snap subcommand
 var deleteSnapCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a snap from the user's namespace",
 	Long:  `Delete a snap from the user's namespace.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
@@ -40,6 +66,7 @@ var forkSnapCmd = &cobra.Command{
 	Use:   "fork",
 	Short: "Forks a public snap into the user's namespace",
 	Long:  `Forks a public snap into the user's namespace.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
@@ -116,6 +143,7 @@ var publishSnapCmd = &cobra.Command{
 	Use:   "publish",
 	Short: "Makes a user's snap public and discoverable by others in the gallery",
 	Long:  `Makes a user's snap public and discoverable by others in the gallery.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
@@ -132,6 +160,7 @@ var unpublishSnapCmd = &cobra.Command{
 	Use:   "unpublish",
 	Short: "Makes a user's snap private",
 	Long:  `Makes a user's snap private.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve snapID as the first argument
 		snapID := args[0]
@@ -145,6 +174,7 @@ var unpublishSnapCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(snapsCmd)
+	snapsCmd.AddCommand(createSnapCmd)
 	snapsCmd.AddCommand(deleteSnapCmd)
 	snapsCmd.AddCommand(forkSnapCmd)
 	snapsCmd.AddCommand(getSnapCmd)
