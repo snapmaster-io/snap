@@ -14,6 +14,7 @@ import (
 	cv "github.com/nirasan/go-oauth-pkce-code-verifier"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/viper"
+	"gopkg.in/square/go-jose.v2/jwt"
 )
 
 // AuthorizeUser implements the PKCE OAuth2 flow.
@@ -27,7 +28,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 	// construct the authorization URL (with Auth0 as the authorization provider)
 	authorizationURL := fmt.Sprintf(
 		"https://%s/authorize?audience=https://api.snapmaster.io"+
-			"&scope=openid"+
+			"&scope=openid+profile+email"+
 			"&response_type=code&client_id=%s"+
 			"&code_challenge=%s"+
 			"&code_challenge_method=S256&redirect_uri=%s",
@@ -51,7 +52,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 
 		// trade the authorization code and the code verifier for an access token
 		codeVerifier := CodeVerifier.String()
-		token, err := getAccessToken(clientID, codeVerifier, code, redirectURL)
+		responseData, err := getAccessToken(clientID, codeVerifier, code, redirectURL)
 		if err != nil {
 			fmt.Println("snap: could not get access token")
 			io.WriteString(w, "Error: could not retrieve access token\n")
@@ -61,7 +62,23 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 			return
 		}
 
-		viper.Set("AccessToken", token)
+		// retrieve the idtoken and access token out of the map, and return to caller
+		idToken := responseData["id_token"].(string)
+		accessToken := responseData["access_token"].(string)
+
+		// parse the id_token JWT into its claims
+		claims := parseJWT(idToken)
+		name := claims["name"].(string)
+		email := claims["email"].(string)
+
+		// store some user identity claims
+		viper.Set("Name", name)
+		viper.Set("Email", email)
+
+		// set the access token
+		viper.Set("AccessToken", accessToken)
+
+		// store the config
 		err = viper.WriteConfig()
 		//_, err = config.WriteConfigFile("auth.json", token)
 		if err != nil {
@@ -76,9 +93,20 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		// return an indication of success to the caller
 		io.WriteString(w, `
 		<html>
-			<body>
-				<h1>Login successful!</h1>
-				<h2>You can close this window and return to the snap CLI.</h2>
+			<head>
+				<link href="https://fonts.googleapis.com/css?family=Lato:100,300,400&display=swap" rel="stylesheet">  
+				<title>SnapMaster</title>
+			</head>
+			<body style="background: #000; color: #fff; font-family: 'Lato', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+			"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+			sans-serif; font-weight: 300;">
+				<center style="margin: 100">
+					<img src="https://www.snapmaster.io/SnapMaster-logo-220.png" alt="snapmaster" width="100" height="100" />
+					<h1>Hi, `)
+		io.WriteString(w, name)
+		io.WriteString(w, `! You've logged in successfully.</h1>
+					<h2>You can close this window and return to the snap CLI.</h2>
+				</center>
 			</body>
 		</html>`)
 
@@ -116,7 +144,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 }
 
 // getAccessToken trades the authorization code retrieved from the first OAuth2 leg for an access token
-func getAccessToken(clientID string, codeVerifier string, authorizationCode string, callbackURL string) (string, error) {
+func getAccessToken(clientID string, codeVerifier string, authorizationCode string, callbackURL string) (map[string]interface{}, error) {
 	// set the url and form-encoded data for the POST to the access token endpoint
 	url := "https://snapmaster-dev.auth0.com/oauth/token"
 	data := fmt.Sprintf(
@@ -133,7 +161,7 @@ func getAccessToken(clientID string, codeVerifier string, authorizationCode stri
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Printf("snap: HTTP error: %s", err)
-		return "", err
+		return nil, err
 	}
 
 	// process the response
@@ -145,12 +173,10 @@ func getAccessToken(clientID string, codeVerifier string, authorizationCode stri
 	err = json.Unmarshal(body, &responseData)
 	if err != nil {
 		fmt.Printf("snap: JSON error: %s", err)
-		return "", err
+		return nil, err
 	}
 
-	// retrieve the access token out of the map, and return to caller
-	accessToken := responseData["access_token"].(string)
-	return accessToken, nil
+	return responseData, nil
 }
 
 // cleanup closes the HTTP server
@@ -158,4 +184,42 @@ func cleanup(server *http.Server) {
 	// we run this as a goroutine so that this function falls through and
 	// the socket to the browser gets flushed/closed before the server goes away
 	go server.Close()
+}
+
+func parseJWT(tokenString string) map[string]interface{} {
+	var claims map[string]interface{} // generic map to store parsed token
+
+	// decode JWT token without verifying the signature
+	token, err := jwt.ParseSigned(tokenString)
+	if err != nil {
+		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+		os.Exit(1)
+	}
+
+	err = token.UnsafeClaimsWithoutVerification(&claims)
+	if err != nil {
+		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+		os.Exit(1)
+	}
+
+	/*
+		claims := jwt.MapClaims{}
+		_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte("<YOUR VERIFICATION KEY>"), nil
+		})
+
+		if err != nil {
+			fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+			os.Exit(1)
+		}
+	*/
+	return claims
+	/*
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			return claims
+		}
+
+		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+		os.Exit(1)
+		return nil*/
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// initCmd represents the login command
+// initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize the snap CLI environment",
