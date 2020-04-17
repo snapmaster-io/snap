@@ -13,56 +13,57 @@ import (
 
 // ActiveSnap defines the fields to print for an activeSnap
 type ActiveSnap struct {
-	ActiveSnapID string `json:"activeSnapId"`
-	SnapID string `json:"snapID"`
-	State string `json:"state"`
-	Provider string `json:"provider"`
-	Activated bool `json:"activated"`
-	ExecutionCounter int `json:"executionCounter"`
+	ActiveSnapID     string `json:"activeSnapId"`
+	SnapID           string `json:"snapID"`
+	State            string `json:"state"`
+	Provider         string `json:"provider"`
+	Activated        int64  `json:"activated"`
+	ExecutionCounter int    `json:"executionCounter"`
+	ErrorCounter     int    `json:"errorCounter"`
 }
 
 // ActiveSnapActionsLog defines the fields to print for action logs
 type ActiveSnapActionsLog struct {
-	Provider string `json:"provider"`
-	State string `json:"state"`
-	Output ActiveSnapActionsLogOutput `json:"output"`
+	Provider string                     `json:"provider"`
+	State    string                     `json:"state"`
+	Output   ActiveSnapActionsLogOutput `json:"output"`
 }
 
 // ActiveSnapActionsLogOutput defines the fields to print for action logs
 type ActiveSnapActionsLogOutput struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
-	Error string `json:"error"`
+	Error  string `json:"error"`
 }
 
 // ActiveSnapLog defines the fields to print for an activeSnap's logs
 type ActiveSnapLog struct {
-	LogID int64 `json:"timestamp"`
-	ActiveSnapID string `json:"activeSnapId"`
-	SnapID string `json:"snapID"`
-	State string `json:"state"`
-	Trigger string `json:"trigger"`
-	Actions []ActiveSnapActionsLog `json:"actions"`
+	LogID        int64                  `json:"timestamp"`
+	ActiveSnapID string                 `json:"activeSnapId"`
+	SnapID       string                 `json:"snapID"`
+	State        string                 `json:"state"`
+	Trigger      string                 `json:"trigger"`
+	Actions      []ActiveSnapActionsLog `json:"actions"`
 }
 
 // ActiveSnapStatus defines the fields to unmarshal from a pause/resume operation
 type ActiveSnapStatus struct {
-	Message string `json:"message"`
+	Message    string     `json:"message"`
 	ActiveSnap ActiveSnap `json:"activeSnap"`
 }
 
 // Snap defines the fields to print for a snap
 type Snap struct {
-	SnapID string `json:"snapId"`
+	SnapID      string `json:"snapId"`
 	Description string `json:"description"`
-	Provider string `json:"provider"`
-	Private bool `json:"private"`
+	Provider    string `json:"provider"`
+	Private     bool   `json:"private"`
 }
 
 // SnapStatus defines the fields to unmarshal from a create/fork/publish/unpublish operation
 type SnapStatus struct {
 	Message string `json:"message"`
-	Snap Snap `json:"snap"`
+	Snap    Snap   `json:"snap"`
 }
 
 // what style to use for all tables
@@ -98,6 +99,9 @@ func printActiveSnap(response []byte) {
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Field", "Value"})
 	for field, value := range entity {
+		if field == "activated" {
+			value = time.Unix(value.(int64)/1000, 0)
+		}
 		t.AppendRow(table.Row{field, value})
 	}
 	t.SetStyle(tableStyle)
@@ -124,12 +128,12 @@ func printActiveSnapLogs(response []byte) {
 	// write out the table of properties
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf(
-		"Logs for Snap ID %s\nActive Snap ID %s, triggered by %s", 
+		"Logs for Snap ID %s\nActive Snap ID %s, triggered by %s",
 		snapID, activeSnapID, trigger))
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Log ID", "Timestamp", "State"})
 	for _, logEntry := range activeSnapLogs {
-		timestamp := time.Unix(logEntry.LogID / 1000, 0)
+		timestamp := time.Unix(logEntry.LogID/1000, 0)
 		t.AppendRow(table.Row{logEntry.LogID, timestamp, logEntry.State})
 	}
 	t.SetStyle(tableStyle)
@@ -158,10 +162,10 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 	found := false
 	for k, v := range activeSnapLogs {
 		logIDasInt64, _ := strconv.ParseInt(logID, 10, 64)
-    if v.LogID == logIDasInt64 {
+		if v.LogID == logIDasInt64 {
 			logEntry = activeSnapLogs[k]
 			found = true
-    }
+		}
 	}
 
 	// check for log entry not found
@@ -210,7 +214,7 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 }
 
 func printActiveSnapStatus(response []byte) {
-	// unmarshal into the ActiveSnapStatus struct, to get "Message" and 
+	// unmarshal into the ActiveSnapStatus struct, to get "Message" and
 	// flatten the property set of the ActiveSnap
 	var activeSnapStatus ActiveSnapStatus
 	json.Unmarshal(response, &activeSnapStatus)
@@ -231,6 +235,9 @@ func printActiveSnapStatus(response []byte) {
 	t.SetTitle("Active Snap Values")
 	t.AppendHeader(table.Row{"Field", "Value"})
 	for field, value := range entity {
+		if field == "activated" {
+			value = time.Unix(int64(value.(float64))/1000, 0)
+		}
 		t.AppendRow(table.Row{field, value})
 	}
 	t.SetStyle(tableStyle)
@@ -238,23 +245,25 @@ func printActiveSnapStatus(response []byte) {
 }
 
 func printActiveSnapsTable(response []byte) {
-	var snaps []map[string]string
-	json.Unmarshal(response, &snaps)
+	//var activeSnaps []map[string]string
+	var activeSnaps []ActiveSnap
+	json.Unmarshal(response, &activeSnaps)
 
 	// write out the table
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetTitle("Active Snaps")
-	t.AppendHeader(table.Row{"Active Snap ID", "Snap ID", "State", "Trigger", "Executions", "Errors"})
-	for _, snap := range snaps {
-		t.AppendRow(table.Row{snap["activeSnapId"], snap["snapId"], snap["state"], snap["provider"], snap["executionCounter"], snap["errorCounter"]})
+	t.AppendHeader(table.Row{"Active Snap ID", "Snap ID", "State", "Activated", "Trigger", "Executions", "Errors"})
+	for _, a := range activeSnaps {
+		activated := time.Unix(a.Activated/1000, 0)
+		t.AppendRow(table.Row{a.ActiveSnapID, a.SnapID, a.State, activated, a.Provider, a.ExecutionCounter, a.ErrorCounter})
 	}
 	t.SetStyle(tableStyle)
 	t.Render()
 }
 
 func printSnapStatus(response []byte) {
-	// unmarshal into the SnapStatus struct, to get "Message" and 
+	// unmarshal into the SnapStatus struct, to get "Message" and
 	// flatten the property set of the Snap
 	var snapStatus SnapStatus
 	json.Unmarshal(response, &snapStatus)

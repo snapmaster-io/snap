@@ -37,6 +37,38 @@ var deactivateSnapCmd = &cobra.Command{
 	},
 }
 
+// editActiveSnapCmd represents the edit active snap command
+var editActiveSnapCmd = &cobra.Command{
+	Use:   "edit [active snap ID]",
+	Short: "Edit the parameters of an active snap",
+	Long: `Edit the parameters of an active snap.
+	
+	If only active snap ID is passed in, the command will prompt for parameters.
+	
+	If the parameter file was provided with the -f flag, those parameter values will be used to activate the snap.`,
+	Args: cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		activeSnapID := args[0]
+		paramsFile, err := cmd.Flags().GetString("params-file")
+		if err != nil {
+			fmt.Printf("snap: couldn't read params-file %s\nerror: %s\n", paramsFile, err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("snap: editing the parameters of active snap %s\n", activeSnapID)
+
+		var params []map[string]string
+
+		// if no params file supplied, need to get the snap definition and prompt for parameters
+		if paramsFile == "" {
+			params = obtainSnapParameters(activeSnapID, "activesnaps", "snap.parameters")
+		}
+
+		// make the POST call to the API
+		processActivateCommand(activeSnapID, "edit", params)
+	},
+}
+
 // getActiveSnapCmd represents the get active snap subcommand
 var getActiveSnapCmd = &cobra.Command{
 	Use:   "get [active snap ID]",
@@ -175,11 +207,15 @@ var resumeActiveSnapCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(activeSnapsCmd)
 	activeSnapsCmd.AddCommand(deactivateSnapCmd)
+	activeSnapsCmd.AddCommand(editActiveSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapCmd)
 	activeSnapsCmd.AddCommand(getActiveSnapLogsCmd)
 	activeSnapsCmd.AddCommand(listActiveSnapsCmd)
 	activeSnapsCmd.AddCommand(pauseActiveSnapCmd)
 	activeSnapsCmd.AddCommand(resumeActiveSnapCmd)
+
+	editActiveSnapCmd.Flags().StringP("params-file", "p", "", "a yaml file that defines snap parameter values")
+
 }
 
 func processActiveCommand(activeSnapID string, action string) {
