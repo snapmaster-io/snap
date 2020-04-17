@@ -100,7 +100,7 @@ func printActiveSnap(response []byte) {
 	t.AppendHeader(table.Row{"Field", "Value"})
 	for field, value := range entity {
 		if field == "activated" {
-			value = time.Unix(value.(int64)/1000, 0)
+			value = time.Unix(int64(value.(float64))/1000, 0)
 		}
 		t.AppendRow(table.Row{field, value})
 	}
