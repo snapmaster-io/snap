@@ -9,9 +9,9 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${fileDirname}",
+      "program": "${workspaceFolder}/main.go",
       "env": {},
-      "args": ["activate", "snapmaster/github-twilio"]
+      "args": ["gallery", "list"]
     }
   ]
 }

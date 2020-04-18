@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 )
 
 // ActiveSnap defines the fields to print for an activeSnap
@@ -96,6 +97,7 @@ func printActiveSnap(response []byte) {
 
 	// write out the table of properties
 	t := table.NewWriter()
+	t.SetTitle(fmt.Sprintf("Active Snap %s", activeSnap.ActiveSnapID))
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Field", "Value"})
 	for field, value := range entity {
@@ -105,6 +107,7 @@ func printActiveSnap(response []byte) {
 		t.AppendRow(table.Row{field, value})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 
@@ -137,6 +140,7 @@ func printActiveSnapLogs(response []byte) {
 		t.AppendRow(table.Row{logEntry.LogID, timestamp, logEntry.State})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 
@@ -181,6 +185,7 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 	t.AppendHeader(table.Row{"Snap ID", "Active Snap ID", "Log ID"})
 	t.AppendRow(table.Row{snapID, activeSnapID, logID})
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 
 	fmt.Println("\nAction details:")
@@ -241,6 +246,7 @@ func printActiveSnapStatus(response []byte) {
 		t.AppendRow(table.Row{field, value})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 
@@ -259,6 +265,7 @@ func printActiveSnapsTable(response []byte) {
 		t.AppendRow(table.Row{a.ActiveSnapID, a.SnapID, a.State, activated, a.Provider, a.ExecutionCounter, a.ErrorCounter})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 
@@ -292,6 +299,7 @@ func printSnapStatus(response []byte) {
 		t.AppendRow(table.Row{field, value})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 
@@ -308,6 +316,7 @@ func printSnapsTable(response []byte) {
 		t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["provider"]})
 	}
 	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
 

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -62,7 +64,21 @@ func init() {
 }
 
 func printConfig() {
-	fmt.Printf("API URL: %s\n", viper.GetString("APIURL"))
-	fmt.Printf("Client ID: %s\n", viper.GetString("ClientID"))
-	fmt.Printf("Auth Domain: %s\n", viper.GetString("AuthDomain"))
+	configMap := map[string]string{
+		"API URL":     viper.GetString("APIURL"),
+		"Client ID":   viper.GetString("ClientID"),
+		"Auth Domain": viper.GetString("AuthDomain"),
+	}
+
+	// write out the table of properties
+	t := table.NewWriter()
+	t.SetTitle("Config Values")
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Field", "Value"})
+	for field, value := range configMap {
+		t.AppendRow(table.Row{field, value})
+	}
+	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
+	t.Render()
 }
