@@ -17,6 +17,11 @@ var initCmd = &cobra.Command{
 
 If no flags are specified, initializes the snap CLI to point to the public SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// re-bind the flags at initCmd run time (they are typically bound to configSetCmd at cobra setup time)
+		viper.BindPFlag("APIURL", cmd.Flags().Lookup("api-url"))
+		viper.BindPFlag("ClientID", cmd.Flags().Lookup("client-id"))
+		viper.BindPFlag("AuthDomain", cmd.Flags().Lookup("auth-domain"))
+
 		var err error
 
 		// Create the config file in case the path hasn't been created yet
@@ -46,8 +51,4 @@ func init() {
 	initCmd.Flags().StringP("api-url", "", "", "API URL (defaults to https://dev.snapmaster.io)")
 	initCmd.Flags().StringP("client-id", "", "", "Auth0 Client ID (required for any non-default API URL)")
 	initCmd.Flags().StringP("auth-domain", "", "", "Auth0 Auth Domain (defaults to snapmaster-dev.auth0.com)")
-
-	viper.BindPFlag("APIURL", initCmd.Flags().Lookup("api-url"))
-	viper.BindPFlag("ClientID", initCmd.Flags().Lookup("client-id"))
-	viper.BindPFlag("AuthDomain", initCmd.Flags().Lookup("auth-domain"))
 }
