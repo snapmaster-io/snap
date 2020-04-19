@@ -227,7 +227,7 @@ func printActiveSnapStatus(response []byte) {
 	fmt.Printf("snap: operation status: %s\n\n", activeSnapStatus.Message)
 
 	// if the message indicates an error, there is no active snap to display
-	if message != "success" {
+	if activeSnapStatus.Message != "success" {
 		return
 	}
 
