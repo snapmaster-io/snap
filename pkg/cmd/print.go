@@ -225,6 +225,12 @@ func printActiveSnapStatus(response []byte) {
 	json.Unmarshal(response, &activeSnapStatus)
 
 	fmt.Printf("snap: operation status: %s\n\n", activeSnapStatus.Message)
+
+	// if the message indicates an error, there is no active snap to display
+	if message != "success" {
+		return
+	}
+
 	activeSnap := activeSnapStatus.ActiveSnap
 
 	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
