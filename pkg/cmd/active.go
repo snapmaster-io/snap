@@ -7,6 +7,7 @@ import (
 
 	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/spf13/cobra"
+	"github.com/tidwall/gjson"
 )
 
 // activeSnapsCmd represents the snaps command
@@ -136,7 +137,14 @@ snap active logs [active snap ID] details [log ID] will return the output for ea
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			if len(args) > 2 && logID != "" {
+				// select the entry that matches the log ID
+				logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
+				// print the log entry
+				fmt.Print(logEntry)
+			} else {
+				printJSON(response)
+			}
 			return
 		}
 

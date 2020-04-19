@@ -11,7 +11,7 @@
       "mode": "auto",
       "program": "${workspaceFolder}/main.go",
       "env": {},
-      "args": ["gallery", "list"]
+      "args": ["active", "logs", "1585955316987", "details", "1587147792662", "-f", "json"]
     }
   ]
 }

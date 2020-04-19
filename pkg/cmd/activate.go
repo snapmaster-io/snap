@@ -54,7 +54,7 @@ func getSnapParameters(snapID string, path string, jsonPath string) []map[string
 	// execute the API call
 	response, err := api.Get(urlpath)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve snap %s\nerror: %s\n", err)
+		fmt.Printf("snap: could not retrieve snap %s\nerror: %s\n", urlpath, err)
 		os.Exit(1)
 	}
 

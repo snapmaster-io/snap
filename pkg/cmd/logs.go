@@ -6,6 +6,7 @@ import (
 
 	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/spf13/cobra"
+	"github.com/tidwall/gjson"
 )
 
 // logsCmd represents the logs command
@@ -50,13 +51,16 @@ var logDetailsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/logs")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			fmt.Printf("snap: could not retrieve data\nerrror: %s\n", err)
 			os.Exit(1)
 		}
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			// select the entry that matches the log ID
+			logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
+			// print the log entry
+			fmt.Print(logEntry)
 			return
 		}
 
