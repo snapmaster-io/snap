@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 	cv "github.com/nirasan/go-oauth-pkce-code-verifier"
 	"github.com/skratchdot/open-golang/open"
+	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/snapmaster-io/snap/pkg/config"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2/jwt"
@@ -151,6 +153,93 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 	// start the blocking web server loop
 	// this will exit when the handler gets fired and calls server.Close()
 	server.Serve(l)
+
+	// we should now have the token to be able to call the GetAccount API
+	account := api.GetAccount()
+	if account == "" {
+		createProfile()
+	}
+}
+
+// cleanup closes the HTTP server
+func cleanup(server *http.Server) {
+	// we run this as a goroutine so that the calling function falls through and
+	// the socket to the browser gets flushed/closed before the server goes away
+	go server.Close()
+}
+
+// create a profile if this is the first login and none exists yet
+func createProfile() {
+	name := viper.GetString("Name")
+	email := viper.GetString("Email")
+
+	fmt.Println()
+	fmt.Printf(`Hi %s, welcome to SnapMaster!  
+First things first: please select an account (tenant) name, so we can set 
+things up for you.
+
+Your account will be part of the namespace that will identify your snaps, 
+much like your github account is used to name your repos. You can't change it 
+later, so pick a good one! 
+
+Account names must start with a letter and must be entirely composed of 
+alphanumeric characters, with a 20 character limit. 
+
+Enter account name: `, name)
+
+	var account string
+	valid := false
+
+	// create a new reader from stdin
+	reader := bufio.NewReader(os.Stdin)
+
+	for !valid {
+		text, _ := reader.ReadString('\n')
+
+		// store the account value without the last character (\n)
+		account = text[:len(text)-1]
+
+		if api.ValidateAccount(account) {
+			break
+		}
+
+		fmt.Printf(`Unfortunately, account name '%s' is either invalid or already taken. 
+Please try another name: `, account)
+	}
+
+	message := api.CreateAccount(account)
+	if message != "success" {
+		fmt.Printf("snap: could not create account name '%s'\n", account)
+		fmt.Printf("Please complete the account creation via the web app at %s\n", viper.GetString("APIURL"))
+		os.Exit(1)
+	}
+
+	profile := make(map[string]interface{})
+	profile["name"] = name
+	profile["email"] = email
+	profile["account"] = account
+
+	message = api.StoreProfile(profile)
+	if message != "success" {
+		fmt.Printf("snap: error creating profile\n")
+		fmt.Printf("Please complete the account creation via the web app at %s\n", viper.GetString("APIURL"))
+		os.Exit(1)
+	}
+
+	fmt.Printf(`Account successfully created! 
+
+Some things to try next:
+
+$ snap gallery list   # will list snaps in the gallery
+$ snap tools list     # will list available tools to connect to 
+$ snap connect <tool> # will guide you through connecting a tool
+
+Join snapmaster.slack.com to introduce yourself, ask questions, and interact 
+with the community! 
+
+Also, be sure to check out ` + viper.GetString("APIURL") + ` for the GUI 
+experience ;)
+`)
 }
 
 // getAccessToken trades the authorization code retrieved from the first OAuth2 leg for an access token
@@ -189,13 +278,6 @@ func getAccessToken(clientID string, codeVerifier string, authorizationCode stri
 	return responseData, nil
 }
 
-// cleanup closes the HTTP server
-func cleanup(server *http.Server) {
-	// we run this as a goroutine so that this function falls through and
-	// the socket to the browser gets flushed/closed before the server goes away
-	go server.Close()
-}
-
 func parseJWT(tokenString string) map[string]interface{} {
 	var claims map[string]interface{} // generic map to store parsed token
 
@@ -212,24 +294,5 @@ func parseJWT(tokenString string) map[string]interface{} {
 		os.Exit(1)
 	}
 
-	/*
-		claims := jwt.MapClaims{}
-		_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte("<YOUR VERIFICATION KEY>"), nil
-		})
-
-		if err != nil {
-			fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
-			os.Exit(1)
-		}
-	*/
 	return claims
-	/*
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			return claims
-		}
-
-		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
-		os.Exit(1)
-		return nil*/
 }

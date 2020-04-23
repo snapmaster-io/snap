@@ -11,10 +11,8 @@ import (
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login to a SnapMaster deployment.",
-	Long: `Login to a SnapMaster deployment.
-
-If no server is specified, login to the public SnapMaster service.`,
+	Short: "Login to the SnapMaster service.",
+	Long:  `Login to the SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// hardcode clientId for now
 		clientID := viper.GetString("ClientID")
@@ -28,8 +26,8 @@ If no server is specified, login to the public SnapMaster service.`,
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Log out of a SnapMaster deployment.",
-	Long:  `Log out of a SnapMaster deployment.`,
+	Short: "Log out of a SnapMaster service.",
+	Long:  `Log out of a SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.Set("AccessToken", "")
 		viper.Set("Name", "")

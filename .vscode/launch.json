@@ -11,7 +11,8 @@
       "mode": "auto",
       "program": "${workspaceFolder}/main.go",
       "env": {},
-      "args": ["active", "logs", "1585955316987", "details", "1587147792662", "-f", "json"]
+//      "args": ["active", "logs", "1585955316987", "details", "1587147792662", "-f", "json"]
+      "args": ["login"]
     }
   ]
 }
