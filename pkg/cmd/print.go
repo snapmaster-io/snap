@@ -333,3 +333,20 @@ func printStatus(response []byte) {
 	// print the message field as the operation status
 	fmt.Printf("snap: operation status: %s\n", string(status["message"]))
 }
+
+func printToolsTable(response []byte) {
+	var tools []map[string]string
+	json.Unmarshal(response, &tools)
+
+	// write out the table
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Tools Library")
+	t.AppendHeader(table.Row{"Provider", "Type"})
+	for _, tool := range tools {
+		t.AppendRow(table.Row{tool["provider"], tool["type"]})
+	}
+	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
+	t.Render()
+}
