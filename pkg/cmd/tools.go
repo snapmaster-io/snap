@@ -34,7 +34,7 @@ var getToolCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/connections")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
 			os.Exit(1)
 		}
 

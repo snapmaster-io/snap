@@ -10,7 +10,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// connectionsCmd represents the tools command
+// connectionsCmd represents the connections command
 var connectionsCmd = &cobra.Command{
 	Use:   "connections [subcommand]",
 	Short: "Manage connections to tools",
@@ -22,28 +22,11 @@ var connectionsCmd = &cobra.Command{
 	},
 }
 
-// connectToolCmd represents the connect tool subcommand
-var connectToolCmd = &cobra.Command{
-	Use:   "connect [tool name]",
-	Short: "Connect a tool",
-	Long:  `Connect a tool.`,
-	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		// retrieve tool name as the first argument
-		tool := args[0]
-
-		data := make(map[string]interface{})
-		data["action"] = "add"
-		data["provider"] = tool
-		processConnectionCommand(data)
-	},
-}
-
 // disconnectToolCmd represents the disconnect tool subcommand
 var disconnectToolCmd = &cobra.Command{
 	Use:   "disconnect [tool name]",
-	Short: "Disconnect a tool",
-	Long:  `Disconnect a tool.`,
+	Short: "Disconnect a tool and remove all credential sets associated with it",
+	Long:  `Disconnect a tool and remove all credential sets associated with it.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve tool as the first argument
@@ -51,40 +34,41 @@ var disconnectToolCmd = &cobra.Command{
 		data := make(map[string]interface{})
 		data["action"] = "remove"
 		data["provider"] = tool
-		processConnectionCommand(data)
+		processConnectionCommand("/connections", tool, data)
 	},
 }
 
 // getConnectionCmd represents the get connection subcommand
 var getConnectionCmd = &cobra.Command{
 	Use:   "get [connection name]",
-	Short: "Get a description of a connection",
-	Long:  `Get a description of a connection.`,
+	Short: "Get credential sets associated with a connection",
+	Long:  `Get credential sets associated with a connection.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// retrieve snapID as the first argument
+		// retrieve connection as the first argument
 		connection := args[0]
 
 		// execute the API call
-		response, err := api.Get("/connections")
+		path := fmt.Sprintf("/entities/%s", connection)
+		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
 			os.Exit(1)
 		}
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			// select the entry that matches the provider name
-			toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s)|@pretty", connection)).Raw
-			// print the tool description
-			fmt.Print(toolDescription)
+			printJSON(response)
 			return
 		}
 
-		// select the entry that matches the provider name
-		toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s).definition", connection)).Raw
-		// print the tool description
-		fmt.Print(toolDescription)
+		if format == "table" {
+			printCredentialsTable(response, connection)
+			return
+		}
+
+		// other action - return the raw response
+		fmt.Printf("Raw response:\n%s\n", string(response))
 	},
 }
 
@@ -109,7 +93,7 @@ var listConnectionsCmd = &cobra.Command{
 		}
 
 		if format == "table" {
-			printToolsTable(response)
+			printConnectionsTable(response)
 			return
 		}
 
@@ -120,15 +104,14 @@ var listConnectionsCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(connectionsCmd)
-	rootCmd.AddCommand(connectToolCmd)
 	connectionsCmd.AddCommand(disconnectToolCmd)
 	connectionsCmd.AddCommand(getConnectionCmd)
 	connectionsCmd.AddCommand(listConnectionsCmd)
 }
 
-func processConnectionCommand(data map[string]interface{}) {
-	path := "/connections"
+func processConnectionCommand(path string, connection string, data map[string]interface{}) {
 	action := data["action"]
+
 	payload, err := json.Marshal(data)
 	if err != nil {
 		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)
@@ -149,8 +132,18 @@ func processConnectionCommand(data map[string]interface{}) {
 	}
 
 	if action == "remove" {
+		// if credential sets were returned, display them
+		num := gjson.GetBytes(response, "#").Int()
+		if num > 0 {
+			fmt.Printf("snap: successfully removed credential-set %s from tool %s\n", data["id"], connection)
+			printCredentialsTable(response, connection)
+			return
+		}
+
 		printStatus(response)
-	} else {
-		printSnapStatus(response)
+		return
 	}
+
+	// other action - return the raw response
+	fmt.Printf("Raw response:\n%s\n", string(response))
 }

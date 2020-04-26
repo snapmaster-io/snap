@@ -275,6 +275,42 @@ func printActiveSnapsTable(response []byte) {
 	t.Render()
 }
 
+func printConnectionsTable(response []byte) {
+	var tools []map[string]string
+	json.Unmarshal(response, &tools)
+
+	// write out the table
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Provider"})
+	for _, tool := range tools {
+		connected := tool["connected"] != ""
+		if connected {
+			t.AppendRow(table.Row{tool["provider"]})
+		}
+	}
+	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
+	t.Render()
+}
+
+func printCredentialsTable(response []byte, connection string) {
+	var credentials []map[string]string
+	json.Unmarshal(response, &credentials)
+
+	// write out the table
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetTitle(fmt.Sprintf("Credential sets for %s connection", connection))
+	t.AppendHeader(table.Row{"Credential set name"})
+	for _, credential := range credentials {
+		t.AppendRow(table.Row{credential["__id"]})
+	}
+	t.SetStyle(tableStyle)
+	t.Style().Title.Align = text.AlignCenter
+	t.Render()
+}
+
 func printSnapStatus(response []byte) {
 	// unmarshal into the SnapStatus struct, to get "Message" and
 	// flatten the property set of the Snap
@@ -342,9 +378,10 @@ func printToolsTable(response []byte) {
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetTitle("Tools Library")
-	t.AppendHeader(table.Row{"Provider", "Type"})
+	t.AppendHeader(table.Row{"Provider", "Type", "Connected?"})
 	for _, tool := range tools {
-		t.AppendRow(table.Row{tool["provider"], tool["type"]})
+		connected := tool["connected"] != ""
+		t.AppendRow(table.Row{tool["provider"], tool["type"], connected})
 	}
 	t.SetStyle(tableStyle)
 	t.Style().Title.Align = text.AlignCenter

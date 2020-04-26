@@ -8,10 +8,9 @@ import (
 
 	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/spf13/cobra"
-	"github.com/tidwall/gjson"
 )
 
-// activateCmd represents the snaps command
+// activateCmd represents the activate command
 var activateCmd = &cobra.Command{
 	Use:   "activate [snap ID]",
 	Short: "Activate a snap",
@@ -35,7 +34,8 @@ var activateCmd = &cobra.Command{
 
 		// if no params file supplied, need to get the snap definition and prompt for parameters
 		if paramsFile == "" {
-			params = obtainSnapParameters(snapID, "snaps", "parameters")
+			params = getSnapParameters(snapID, "snaps", "parameters")
+			inputParameters(params)
 		}
 
 		// make the POST call to the API
@@ -51,28 +51,7 @@ func init() {
 func getSnapParameters(snapID string, path string, jsonPath string) []map[string]string {
 	urlpath := fmt.Sprintf("/%s/%s", path, snapID)
 
-	// execute the API call
-	response, err := api.Get(urlpath)
-	if err != nil {
-		fmt.Printf("snap: could not retrieve snap %s\nerror: %s\n", urlpath, err)
-		os.Exit(1)
-	}
-
-	// json.Unmarshal doesn't do very well with nested arrays / maps in json
-	// gjson is a bit better but still a bit limited... so need to iterate over results and create a new []map
-	// get an array of names and descriptions
-	responseString := string(response)
-	names := gjson.Get(responseString, fmt.Sprintf("%s.#.name", jsonPath)).Array()
-	descriptions := gjson.Get(responseString, fmt.Sprintf("%s.#.description", jsonPath)).Array()
-
-	// create a slice of maps which will contain parameter names and descriptions
-	params := make([]map[string]string, len(names))
-	for i, name := range names {
-		params[i] = make(map[string]string)
-		params[i]["name"] = name.String()
-		params[i]["description"] = descriptions[i].String()
-	}
-
+	params := getParameterDescriptions(urlpath, jsonPath)
 	return params
 }
 
