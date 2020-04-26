@@ -11,7 +11,7 @@ import (
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login to the SnapMaster service.",
+	Short: "Login to the SnapMaster service",
 	Long:  `Login to the SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// hardcode clientId for now
@@ -26,7 +26,7 @@ var loginCmd = &cobra.Command{
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Log out of a SnapMaster service.",
+	Short: "Log out of a SnapMaster service",
 	Long:  `Log out of a SnapMaster service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.Set("AccessToken", "")
