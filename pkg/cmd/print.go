@@ -26,6 +26,7 @@ type ActiveSnap struct {
 // ActiveSnapActionsLog defines the fields to print for action logs
 type ActiveSnapActionsLog struct {
 	Provider string                     `json:"provider"`
+	Action   string                     `json:"action"`
 	State    string                     `json:"state"`
 	Output   ActiveSnapActionsLogOutput `json:"output"`
 }
@@ -44,6 +45,7 @@ type ActiveSnapLog struct {
 	SnapID       string                 `json:"snapID"`
 	State        string                 `json:"state"`
 	Trigger      string                 `json:"trigger"`
+	Event        string                 `json:"event"`
 	Actions      []ActiveSnapActionsLog `json:"actions"`
 }
 
@@ -127,12 +129,13 @@ func printActiveSnapLogs(response []byte) {
 	activeSnapID := activeSnapInstance.ActiveSnapID
 	snapID := activeSnapInstance.SnapID
 	trigger := activeSnapInstance.Trigger
+	event := activeSnapInstance.Event
 
 	// write out the table of properties
 	t := table.NewWriter()
 	t.SetTitle(fmt.Sprintf(
-		"Logs for Snap ID %s\nActive Snap ID %s, triggered by %s",
-		snapID, activeSnapID, trigger))
+		"Logs for Snap ID %s\nActive Snap ID %s, triggered by %s:%s",
+		snapID, activeSnapID, trigger, event))
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Log ID", "Timestamp", "State"})
 	for _, logEntry := range activeSnapLogs {
@@ -195,8 +198,8 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 		fmt.Println()
 		t := table.NewWriter()
 		t.SetOutputMirror(os.Stdout)
-		t.AppendHeader(table.Row{"Provider", "State"})
-		t.AppendRow(table.Row{action.Provider, action.State})
+		t.AppendHeader(table.Row{"Provider", "Action", "State"})
+		t.AppendRow(table.Row{action.Provider, action.Action, action.State})
 		t.SetStyle(actionTableStyle)
 		t.Render()
 
