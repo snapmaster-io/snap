@@ -64,7 +64,7 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 
 	// check for an HTML response which would indicate an error
 	html := string(contents[0:15])
-	if html == "<!DOCTYPE html>" {
+	if html == "<!doctype html>" {
 		fmt.Println("snap: token expired; please log in again")
 		os.Exit(1)
 	}
