@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/jedib0t/go-pretty/text"
+	"github.com/snapmaster-io/snap/pkg/utils"
 )
 
 // ActiveSnap defines the fields to print for an activeSnap
@@ -75,14 +75,7 @@ var actionTableStyle = table.StyleColoredBright
 
 func printJSON(response []byte) {
 	// pretty-print the json
-	output := &bytes.Buffer{}
-	err := json.Indent(output, response, "", "  ")
-	if err != nil {
-		fmt.Println("snap: could not format response as json")
-		fmt.Println(string(response))
-		os.Exit(1)
-	}
-	fmt.Println(output.String())
+	utils.PrintJSON(response)
 }
 
 func printActiveSnap(response []byte) {

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )
@@ -50,7 +51,8 @@ var getToolCmd = &cobra.Command{
 		// select the entry that matches the provider name
 		toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s).definition.text", tool)).Value()
 		// print the tool description
-		fmt.Print(toolDescription)
+		//fmt.Print(toolDescription)
+		utils.PrintYAML(toolDescription.(string))
 	},
 }
 

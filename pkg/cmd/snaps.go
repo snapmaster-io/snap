@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -104,7 +105,7 @@ var getSnapCmd = &cobra.Command{
 		var snap map[string]string
 		json.Unmarshal(response, &snap)
 		text := snap["text"]
-		fmt.Printf(text)
+		utils.PrintYAML(text)
 	},
 }
 
