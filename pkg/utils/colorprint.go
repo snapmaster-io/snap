@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,10 +17,23 @@ func PrintJSON(input []byte) {
 	f := colorjson.NewFormatter()
 	f.Indent = 2
 
-	var obj map[string]interface{}
-	json.Unmarshal(input, &obj)
-	s, _ := f.Marshal(obj)
-	fmt.Println(string(s))
+	var array []map[string]interface{}
+	json.Unmarshal(input, &array)
+	if len(array) > 0 {
+		output := &bytes.Buffer{}
+		err := json.Indent(output, input, "", "  ")
+		if err != nil {
+			fmt.Println("snap: could not format response as json")
+			fmt.Println(string(input))
+			os.Exit(1)
+		}
+		fmt.Println(output.String())
+	} else {
+		var obj map[string]interface{}
+		json.Unmarshal(input, &obj)
+		s, _ := f.Marshal(obj)
+		fmt.Println(string(s))
+	}
 }
 
 // PrintYAML prints out a string as colorized YAML
