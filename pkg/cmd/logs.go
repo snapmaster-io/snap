@@ -60,7 +60,7 @@ var logDetailsCmd = &cobra.Command{
 			// select the entry that matches the log ID
 			logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
 			// print the log entry
-			fmt.Print(logEntry)
+			printJSONString(logEntry)
 			return
 		}
 

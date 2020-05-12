@@ -78,6 +78,11 @@ func printJSON(response []byte) {
 	utils.PrintJSON(response)
 }
 
+func printJSONString(response string) {
+	// pretty-print the json
+	utils.PrintJSON([]byte(response))
+}
+
 func printActiveSnap(response []byte) {
 	// unmarshal into the ActiveSnap struct, to flatten the property set
 	var activeSnap ActiveSnap

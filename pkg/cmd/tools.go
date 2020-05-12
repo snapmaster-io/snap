@@ -44,14 +44,13 @@ var getToolCmd = &cobra.Command{
 			// select the entry that matches the provider name
 			toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s)|@pretty", tool)).Raw
 			// print the tool description
-			fmt.Print(toolDescription)
+			printJSONString(toolDescription)
 			return
 		}
 
 		// select the entry that matches the provider name
 		toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s).definition.text", tool)).Value()
 		// print the tool description
-		//fmt.Print(toolDescription)
 		utils.PrintYAML(toolDescription.(string))
 	},
 }
