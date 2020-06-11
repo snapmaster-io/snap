@@ -54,11 +54,17 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 		os.Exit(1)
 	}
 
+	// check for Unauthorized
+	if res.StatusCode == 401 {
+		fmt.Println("snap: token expired; please log in again")
+		os.Exit(1)
+	}
+
 	// process the response
 	defer res.Body.Close()
 	contents, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Printf("snap: error reading HTTP response from HTTP request against %s\nerror: %s\n", url, err)
+		fmt.Printf("snap: error reading HTTP response from HTTP request for %s\nerror: %s\n", url, err)
 		os.Exit(1)
 	}
 
