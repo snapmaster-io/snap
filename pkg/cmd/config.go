@@ -49,10 +49,58 @@ var configSetCmd = &cobra.Command{
 	},
 }
 
+// configSetDevCmd represents the config set "dev" command
+var configSetDevCmd = &cobra.Command{
+	Use:   "dev",
+	Short: "Set config information to dev environment",
+	Long:  `Set config information to dev environment.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		viper.Set("ClientID", "f9BSuAhmF8dmUtJWZyjAVJbGJWQMKsMW")
+		viper.Set("APIURL", "https://dev.snapmaster.io")
+		viper.Set("AuthDomain", "snapmaster-dev.auth0.com")
+
+		// use viper to write the config to the file
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("snap: could not write config file\nerror: %s\n", err)
+			os.Exit(1)
+		} else {
+			fmt.Printf("snap: updated config\n")
+		}
+
+		printConfig()
+	},
+}
+
+// configSetProdCmd represents the config set "prod" command
+var configSetProdCmd = &cobra.Command{
+	Use:   "prod",
+	Short: "Set config information to production environment",
+	Long:  `Set config information to production environment.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		viper.Set("ClientID", "O4e0z2Ky5DSvjzw3N5YLgtrz1GGltkOb")
+		viper.Set("APIURL", "https://www.snapmaster.io")
+		viper.Set("AuthDomain", "snapmaster.auth0.com")
+
+		// use viper to write the config to the file
+		err := viper.WriteConfig()
+		if err != nil {
+			fmt.Printf("snap: could not write config file\nerror: %s\n", err)
+			os.Exit(1)
+		} else {
+			fmt.Printf("snap: updated config\n")
+		}
+
+		printConfig()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(configCmd)
 	configCmd.AddCommand(configGetCmd)
 	configCmd.AddCommand(configSetCmd)
+	configSetCmd.AddCommand(configSetDevCmd)
+	configSetCmd.AddCommand(configSetProdCmd)
 
 	configSetCmd.Flags().StringP("api-url", "", "", "API URL (defaults to https://dev.snapmaster.io)")
 	configSetCmd.Flags().StringP("client-id", "", "", "Auth0 Client ID (required for any non-default API URL)")

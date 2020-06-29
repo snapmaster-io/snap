@@ -52,9 +52,9 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	// set some default values
-	viper.SetDefault("ClientID", "f9BSuAhmF8dmUtJWZyjAVJbGJWQMKsMW")
-	viper.SetDefault("APIURL", "https://dev.snapmaster.io")
-	viper.SetDefault("AuthDomain", "snapmaster-dev.auth0.com")
+	viper.SetDefault("ClientID", "O4e0z2Ky5DSvjzw3N5YLgtrz1GGltkOb")
+	viper.SetDefault("APIURL", "https://www.snapmaster.io")
+	viper.SetDefault("AuthDomain", "snapmaster.auth0.com")
 	viper.SetDefault("RedirectURL", "http://localhost:8085")
 
 	if cfgFile != "" {
