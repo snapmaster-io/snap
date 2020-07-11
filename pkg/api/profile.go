@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/snapmaster-io/snap/pkg/utils"
 )
 
-// CreateAccount associates an account name with a user ID and returns a message string
+// CreateAccount associates an account name with a user ID and returns a status string
 func CreateAccount(account string) string {
 	path := fmt.Sprintf("/validateaccount/%s", account)
 	bytes, _ := Post(path, []byte(""))
@@ -14,7 +16,7 @@ func CreateAccount(account string) string {
 	var response map[string]string
 	json.Unmarshal(bytes, &response)
 
-	return response["message"]
+	return response["status"]
 }
 
 // GetAccount retrieves the user account name
@@ -37,11 +39,11 @@ func GetProfile() map[string]interface{} {
 	return profile
 }
 
-// StoreProfile stores the user's profile and returns a message string
+// StoreProfile stores the user's profile and returns a status string
 func StoreProfile(profile map[string]interface{}) string {
 	payload, err := json.Marshal(profile)
 	if err != nil {
-		fmt.Printf("snap: could not store profile\nerror: %s\n", err)
+		utils.PrintErrorMessage("could not store profile", err)
 		os.Exit(1)
 	}
 
@@ -50,7 +52,7 @@ func StoreProfile(profile map[string]interface{}) string {
 	var response map[string]string
 	json.Unmarshal(bytes, &response)
 
-	return response["message"]
+	return response["status"]
 }
 
 // ValidateAccount validates an account name and returns whether it is valid or not

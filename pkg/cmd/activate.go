@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -24,17 +25,17 @@ var activateCmd = &cobra.Command{
 		snapID := args[0]
 		paramsFile, err := cmd.Flags().GetString("params-file")
 		if err != nil {
-			fmt.Printf("snap: couldn't read params-file %s\nerror: %s\n", paramsFile, err)
+			utils.PrintError(fmt.Sprintf("couldn't read params-file %s\nerror: %s\n", paramsFile, err))
 			os.Exit(1)
 		}
 
-		fmt.Printf("snap: activating snap %s\n", snapID)
+		utils.PrintMessage(fmt.Sprintf("activating snap %s", snapID))
 
 		var params []map[string]string
 
 		// if no params file supplied, need to get the snap definition and prompt for parameters
 		if paramsFile == "" {
-			params = getSnapParameters(snapID, "snaps", "parameters")
+			params = getSnapParameters(snapID, "snaps", "data.parameters")
 			inputParameters(params)
 		}
 
@@ -66,14 +67,14 @@ func processActivateCommand(snapID string, action string, params []map[string]st
 
 	payload, err := json.Marshal(data)
 	if err != nil {
-		fmt.Printf("snap: could not serialize payload into JSON\nerror: %s\n", err)
+		utils.PrintError(fmt.Sprintf("could not serialize payload into JSON\nerror: %s\n", err))
 		os.Exit(1)
 	}
 
 	// execute the API call
 	response, err := api.Post(path, payload)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
+		utils.PrintError(fmt.Sprintf("could not retrieve data\nerror: %s\n", err))
 		os.Exit(1)
 	}
 

@@ -35,7 +35,7 @@ var getToolCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/connections")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -65,7 +65,7 @@ var listToolsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/connections")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -81,7 +81,7 @@ var listToolsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 

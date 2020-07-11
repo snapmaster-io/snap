@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -20,11 +21,11 @@ NOTE: snap login must be called before there is an active user.`,
 		name := viper.GetString("Name")
 		email := viper.GetString("Email")
 		if accessToken == "" {
-			fmt.Println("snap: no logged in user.  To login, use the command 'snap login'.")
+			utils.PrintError("no logged in user.  To login, use the command 'snap login'.")
 			os.Exit(1)
 		}
 
-		fmt.Printf("snap: current user is %s <%s>\n", name, email)
+		utils.PrintMessage(fmt.Sprintf("current user is %s <%s>", name, email))
 	},
 }
 

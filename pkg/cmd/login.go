@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/snapmaster-io/snap/pkg/auth"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,7 +33,7 @@ var logoutCmd = &cobra.Command{
 		viper.Set("Email", "")
 		viper.WriteConfig()
 
-		fmt.Println("snap: no logged in user.")
+		utils.PrintError("no logged in user.")
 	},
 }
 

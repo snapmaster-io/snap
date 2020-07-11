@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +40,7 @@ var credentialsAddCmd = &cobra.Command{
 		jsonPath := fmt.Sprintf("#(provider==%s).definition.connection.connectionInfo", tool)
 		credentials := getParameterDescriptions("/connections", jsonPath)
 
-		fmt.Printf("snap: adding credential-set for %s\n", tool)
+		utils.PrintMessage(fmt.Sprintf("adding credential-set for %s", tool))
 
 		// if no credentials file supplied, prompt for parameters
 		if len(args) == 1 {
@@ -77,7 +78,7 @@ var credentialsListCmd = &cobra.Command{
 		path := fmt.Sprintf("/entities/%s", connection)
 		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -93,7 +94,7 @@ var credentialsListCmd = &cobra.Command{
 		}
 
 		// other action - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 

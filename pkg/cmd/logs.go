@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )
@@ -18,7 +19,7 @@ var logsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/logs")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -34,7 +35,7 @@ var logsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 
@@ -51,7 +52,7 @@ var logDetailsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/logs")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data\nerrror: %s\n", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -70,7 +71,7 @@ var logDetailsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 

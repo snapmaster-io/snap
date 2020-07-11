@@ -12,6 +12,26 @@ import (
 	"github.com/zyedidia/highlight"
 )
 
+// PrintError prints out an error message in red
+func PrintError(message string) {
+	fmt.Printf("snap: ")
+	color.Set(color.FgRed)
+	fmt.Println(message)
+	color.Unset()
+}
+
+// PrintErrorMessage prints out a message in red followed by an error on the next line
+func PrintErrorMessage(message string, err error) {
+	fmt.Printf("snap: ")
+	color.Set(color.FgRed)
+	fmt.Println(message)
+	color.Unset()
+	fmt.Printf("error: ")
+	color.Set(color.FgRed)
+	fmt.Println(err)
+	color.Unset()
+}
+
 // PrintJSON prints out a byte slice as colorized JSON
 func PrintJSON(input []byte) {
 	f := colorjson.NewFormatter()
@@ -23,7 +43,7 @@ func PrintJSON(input []byte) {
 		output := &bytes.Buffer{}
 		err := json.Indent(output, input, "", "  ")
 		if err != nil {
-			fmt.Println("snap: could not format response as json")
+			PrintError("could not format response as json")
 			fmt.Println(string(input))
 			os.Exit(1)
 		}
@@ -36,6 +56,31 @@ func PrintJSON(input []byte) {
 	}
 }
 
+// PrintMessage prints out a message in green
+func PrintMessage(message string) {
+	fmt.Printf("snap: ")
+	color.Set(color.FgGreen)
+	fmt.Println(message)
+	color.Unset()
+}
+
+// PrintStatus prints out a status code and optional message
+func PrintStatus(status string, message string) {
+	fmt.Printf("snap: operation status: ")
+	if status == "success" {
+		color.Set(color.FgGreen)
+		fmt.Println(status)
+	} else {
+		color.Set(color.FgRed)
+		fmt.Println(status)
+		color.Unset()
+		fmt.Print("message: ")
+		color.Set(color.FgRed)
+		fmt.Println(message)
+		color.Unset()
+	}
+}
+
 // PrintYAML prints out a string as colorized YAML
 func PrintYAML(inputString string) {
 
@@ -45,7 +90,7 @@ func PrintYAML(inputString string) {
 	// Parse it into a `*highlight.Def`
 	syntaxDef, err := highlight.ParseDef(syntaxFile)
 	if err != nil {
-		fmt.Printf("snap: error parsing definition\nerror: %s\n", err)
+		PrintError(fmt.Sprintf("error parsing definition\nerror: %s\n", err))
 		os.Exit(1)
 	}
 

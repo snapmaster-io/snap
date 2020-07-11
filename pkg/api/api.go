@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/viper"
 )
 
@@ -26,14 +27,14 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	// retrieve access token
 	accessToken := viper.GetString("AccessToken")
 	if len(accessToken) < 1 {
-		fmt.Println("snap: login required before executing this command")
+		utils.PrintError("login required before executing this command")
 		os.Exit(1)
 	}
 
 	// retrieve API URL
 	apiURL := viper.GetString("APIURL")
 	if len(apiURL) < 1 {
-		fmt.Println("snap: API URL required but not found")
+		utils.PrintError("API URL required but not found")
 		os.Exit(1)
 	}
 
@@ -41,7 +42,7 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	url := apiURL + path
 	req, err := http.NewRequest(verb, url, payload)
 	if err != nil {
-		fmt.Printf("snap: could not create request with URL %s\nerror: %s\n", url, err)
+		utils.PrintErrorMessage(fmt.Sprintf("could not create request with URL %s", url), err)
 		os.Exit(1)
 	}
 
@@ -50,13 +51,13 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	req.Header.Add("authorization", fmt.Sprintf("Bearer %s", accessToken))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("snap: could not execute HTTP request with URL %s\nerror: %s\n", url, err)
+		utils.PrintErrorMessage(fmt.Sprintf("could not execute HTTP request with URL %s", url), err)
 		os.Exit(1)
 	}
 
 	// check for Unauthorized
 	if res.StatusCode == 401 {
-		fmt.Println("snap: token expired; please log in again")
+		utils.PrintError("token expired; please log in again")
 		os.Exit(1)
 	}
 
@@ -64,14 +65,14 @@ func call(path string, verb string, payload interface{ io.Reader }) ([]byte, err
 	defer res.Body.Close()
 	contents, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Printf("snap: error reading HTTP response from HTTP request for %s\nerror: %s\n", url, err)
+		utils.PrintErrorMessage(fmt.Sprintf("error reading HTTP response from HTTP request for %s", url), err)
 		os.Exit(1)
 	}
 
 	// check for an HTML response which would indicate an error
 	html := string(contents[0:15])
 	if html == "<!doctype html>" {
-		fmt.Println("snap: token expired; please log in again")
+		utils.PrintError("token expired; please log in again")
 		os.Exit(1)
 	}
 

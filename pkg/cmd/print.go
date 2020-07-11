@@ -49,10 +49,25 @@ type ActiveSnapLog struct {
 	Actions      []ActiveSnapActionsLog `json:"actions"`
 }
 
+// ActiveSnapLogsStatus defines the fields to unmarshal from a pause/resume operation
+type ActiveSnapLogsStatus struct {
+	Status  string          `json:"status"`
+	Message string          `json:"message"`
+	Data    []ActiveSnapLog `json:"data"`
+}
+
+// ActiveSnapsStatus defines the fields to unmarshal from getting all active snaps
+type ActiveSnapsStatus struct {
+	Status  string       `json:"status"`
+	Message string       `json:"message"`
+	Data    []ActiveSnap `json:"data"`
+}
+
 // ActiveSnapStatus defines the fields to unmarshal from a pause/resume operation
 type ActiveSnapStatus struct {
-	Message    string     `json:"message"`
-	ActiveSnap ActiveSnap `json:"activeSnap"`
+	Status  string     `json:"status"`
+	Message string     `json:"message"`
+	Data    ActiveSnap `json:"data"`
 }
 
 // Snap defines the fields to print for a snap
@@ -65,8 +80,16 @@ type Snap struct {
 
 // SnapStatus defines the fields to unmarshal from a create/fork/publish/unpublish operation
 type SnapStatus struct {
+	Status  string `json:"status"`
 	Message string `json:"message"`
-	Snap    Snap   `json:"snap"`
+	Data    Snap   `json:"data"`
+}
+
+// SnapsStatus defines the fields to unmarshal from a gallery list / snaps list operation
+type SnapsStatus struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Data    []Snap `json:"data"`
 }
 
 // what style to use for all tables
@@ -83,10 +106,21 @@ func printJSONString(response string) {
 	utils.PrintJSON([]byte(response))
 }
 
+func printRawResponse(response []byte) {
+	printRawResponse(response)
+}
+
 func printActiveSnap(response []byte) {
 	// unmarshal into the ActiveSnap struct, to flatten the property set
-	var activeSnap ActiveSnap
-	json.Unmarshal(response, &activeSnap)
+	var activeSnapStatus ActiveSnapStatus
+	json.Unmarshal(response, &activeSnapStatus)
+
+	if activeSnapStatus.Status != "success" {
+		utils.PrintStatus(activeSnapStatus.Status, activeSnapStatus.Message)
+		return
+	}
+
+	activeSnap := activeSnapStatus.Data
 
 	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
 	intermediateEntity, _ := json.Marshal(activeSnap)
@@ -112,18 +146,24 @@ func printActiveSnap(response []byte) {
 }
 
 func printActiveSnapLogs(response []byte) {
-	// unmarshal into the ActiveSnap struct, to flatten the property set
-	var activeSnapLogs []ActiveSnapLog
+	// unmarshal into the ActiveSnapLogsStatus struct, to flatten the property set
+	var activeSnapLogs ActiveSnapLogsStatus
 	json.Unmarshal(response, &activeSnapLogs)
 
+	// check for errors
+	utils.PrintStatus(activeSnapLogs.Status, activeSnapLogs.Message)
+	if activeSnapLogs.Status == "error" {
+		return
+	}
+
 	// check for no rows
-	if len(activeSnapLogs) < 1 {
-		fmt.Println("snap: no logs found for this snap")
+	if len(activeSnapLogs.Data) < 1 {
+		utils.PrintError("no logs found for this snap")
 		return
 	}
 
 	// grab the SnapIP, ActiveSnapID, and Trigger from the first record
-	activeSnapInstance := activeSnapLogs[0]
+	activeSnapInstance := activeSnapLogs.Data[0]
 	activeSnapID := activeSnapInstance.ActiveSnapID
 	snapID := activeSnapInstance.SnapID
 	trigger := activeSnapInstance.Trigger
@@ -136,7 +176,7 @@ func printActiveSnapLogs(response []byte) {
 		snapID, activeSnapID, trigger, event))
 	t.SetOutputMirror(os.Stdout)
 	t.AppendHeader(table.Row{"Log ID", "Timestamp", "State"})
-	for _, logEntry := range activeSnapLogs {
+	for _, logEntry := range activeSnapLogs.Data {
 		timestamp := time.Unix(logEntry.LogID/1000, 0)
 		t.AppendRow(table.Row{logEntry.LogID, timestamp, logEntry.State})
 	}
@@ -146,18 +186,24 @@ func printActiveSnapLogs(response []byte) {
 }
 
 func printActiveSnapLogDetails(response []byte, logID string, format string) {
-	// unmarshal into the ActiveSnap struct, to flatten the property set
-	var activeSnapLogs []ActiveSnapLog
+	// unmarshal into the ActiveSnapLogsStatus struct, to flatten the property set
+	var activeSnapLogs ActiveSnapLogsStatus
 	json.Unmarshal(response, &activeSnapLogs)
 
+	// check for errors
+	utils.PrintStatus(activeSnapLogs.Status, activeSnapLogs.Message)
+	if activeSnapLogs.Status == "error" {
+		return
+	}
+
 	// check for no rows
-	if len(activeSnapLogs) < 1 {
-		fmt.Println("snap: no logs found for this snap")
+	if len(activeSnapLogs.Data) < 1 {
+		utils.PrintError("no logs found for this snap")
 		return
 	}
 
 	// grab the SnapIP, ActiveSnapID, and Trigger from the first record
-	activeSnapInstance := activeSnapLogs[0]
+	activeSnapInstance := activeSnapLogs.Data[0]
 	activeSnapID := activeSnapInstance.ActiveSnapID
 	snapID := activeSnapInstance.SnapID
 
@@ -165,17 +211,17 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 
 	// find the entry with the right logID
 	found := false
-	for k, v := range activeSnapLogs {
+	for k, v := range activeSnapLogs.Data {
 		logIDasInt64, _ := strconv.ParseInt(logID, 10, 64)
 		if v.LogID == logIDasInt64 {
-			logEntry = activeSnapLogs[k]
+			logEntry = activeSnapLogs.Data[k]
 			found = true
 		}
 	}
 
 	// check for log entry not found
 	if found == false {
-		fmt.Printf("snap: log ID %s not found for active Snap ID %s\n", logID, activeSnapID)
+		utils.PrintError(fmt.Sprintf("log ID %s not found for active Snap ID %s\n", logID, activeSnapID))
 		os.Exit(1)
 	}
 
@@ -220,19 +266,19 @@ func printActiveSnapLogDetails(response []byte, logID string, format string) {
 }
 
 func printActiveSnapStatus(response []byte) {
-	// unmarshal into the ActiveSnapStatus struct, to get "Message" and
+	// unmarshal into the ActiveSnapStatus struct, to get "Status" and
 	// flatten the property set of the ActiveSnap
 	var activeSnapStatus ActiveSnapStatus
 	json.Unmarshal(response, &activeSnapStatus)
 
-	fmt.Printf("snap: operation status: %s\n\n", activeSnapStatus.Message)
+	utils.PrintStatus(activeSnapStatus.Status, activeSnapStatus.Message)
 
-	// if the message indicates an error, there is no active snap to display
-	if activeSnapStatus.Message != "success" {
+	// if the status indicates an error, there is no active snap to display
+	if activeSnapStatus.Status != "success" {
 		return
 	}
 
-	activeSnap := activeSnapStatus.ActiveSnap
+	activeSnap := activeSnapStatus.Data
 
 	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
 	intermediateEntity, _ := json.Marshal(activeSnap)
@@ -258,9 +304,15 @@ func printActiveSnapStatus(response []byte) {
 }
 
 func printActiveSnapsTable(response []byte) {
-	//var activeSnaps []map[string]string
-	var activeSnaps []ActiveSnap
-	json.Unmarshal(response, &activeSnaps)
+	var activeSnapsStatus ActiveSnapsStatus
+	json.Unmarshal(response, &activeSnapsStatus)
+
+	if activeSnapsStatus.Status != "success" {
+		utils.PrintStatus(activeSnapsStatus.Status, activeSnapsStatus.Message)
+		return
+	}
+
+	activeSnaps := activeSnapsStatus.Data
 
 	// write out the table
 	t := table.NewWriter()
@@ -313,18 +365,18 @@ func printCredentialsTable(response []byte, connection string) {
 }
 
 func printSnapStatus(response []byte) {
-	// unmarshal into the SnapStatus struct, to get "Message" and
+	// unmarshal into the SnapStatus struct, to get "Status" and
 	// flatten the property set of the Snap
 	var snapStatus SnapStatus
 	json.Unmarshal(response, &snapStatus)
 
-	fmt.Printf("snap: operation status: %s\n\n", snapStatus.Message)
-	if snapStatus.Message == "error" {
+	utils.PrintStatus(snapStatus.Status, snapStatus.Message)
+	if snapStatus.Status == "error" {
 		return
 	}
 
 	// since the operation was successful, get the snap
-	snap := snapStatus.Snap
+	snap := snapStatus.Data
 
 	// re-marshal and unmarshal into a map, which can be iterated over as a {name, value} pair
 	intermediateEntity, _ := json.Marshal(snap)
@@ -347,7 +399,7 @@ func printSnapStatus(response []byte) {
 }
 
 func printSnapsTable(response []byte) {
-	var snaps []map[string]string
+	var snaps SnapsStatus
 	json.Unmarshal(response, &snaps)
 
 	// write out the table
@@ -355,8 +407,9 @@ func printSnapsTable(response []byte) {
 	t.SetOutputMirror(os.Stdout)
 	t.SetTitle("Snaps")
 	t.AppendHeader(table.Row{"Snap ID", "Description", "Trigger"})
-	for _, snap := range snaps {
-		t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["provider"]})
+	for _, snap := range snaps.Data {
+		//t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["provider"]})
+		t.AppendRow(table.Row{snap.SnapID, snap.Description, snap.Provider})
 	}
 	t.SetStyle(tableStyle)
 	t.Style().Title.Align = text.AlignCenter
@@ -364,11 +417,12 @@ func printSnapsTable(response []byte) {
 }
 
 func printStatus(response []byte) {
-	var status map[string]string
-	json.Unmarshal(response, &status)
+	// unmarshal into the SnapStatus struct, to get "Status" and
+	// flatten the property set of the Snap
+	var snapStatus SnapStatus
+	json.Unmarshal(response, &snapStatus)
 
-	// print the message field as the operation status
-	fmt.Printf("snap: operation status: %s\n", string(status["message"]))
+	utils.PrintStatus(snapStatus.Status, snapStatus.Message)
 }
 
 func printToolsTable(response []byte) {

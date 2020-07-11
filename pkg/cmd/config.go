@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/jedib0t/go-pretty/text"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -39,10 +39,10 @@ var configSetCmd = &cobra.Command{
 		// use viper to write the config to the file
 		err := viper.WriteConfig()
 		if err != nil {
-			fmt.Printf("snap: could not write config file\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not write config file", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("snap: updated config\n")
+			utils.PrintMessage("updated config file")
 		}
 
 		printConfig()
@@ -62,10 +62,10 @@ var configSetDevCmd = &cobra.Command{
 		// use viper to write the config to the file
 		err := viper.WriteConfig()
 		if err != nil {
-			fmt.Printf("snap: could not write config file\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not write config file", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("snap: updated config\n")
+			utils.PrintMessage("updated config file")
 		}
 
 		printConfig()
@@ -85,10 +85,10 @@ var configSetProdCmd = &cobra.Command{
 		// use viper to write the config to the file
 		err := viper.WriteConfig()
 		if err != nil {
-			fmt.Printf("snap: could not write config file\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not write config file", err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("snap: updated config\n")
+			utils.PrintMessage("updated config file")
 		}
 
 		printConfig()

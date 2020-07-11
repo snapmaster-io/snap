@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/config"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -29,7 +30,7 @@ If no flags are specified, initializes the snap CLI to point to the public SnapM
 		if len(filename) < 1 {
 			filename, err = config.WriteConfigFile("config.json", []byte(""))
 			if err != nil {
-				fmt.Println("snap: could not write config file to $HOME/.config/snap/config.json")
+				utils.PrintError("could not write config file to $HOME/.config/snap/config.json")
 				os.Exit(1)
 			}
 		}
@@ -37,10 +38,10 @@ If no flags are specified, initializes the snap CLI to point to the public SnapM
 		// use viper to write the config to the file
 		err = viper.WriteConfig()
 		if err != nil {
-			fmt.Println(err)
+			utils.PrintErrorMessage(fmt.Sprintf("could not update config file %s", filename), err)
 			os.Exit(1)
 		} else {
-			fmt.Printf("snap: updated config file %s\n", filename)
+			utils.PrintMessage(fmt.Sprintf("updated config file %s", filename))
 		}
 	},
 }

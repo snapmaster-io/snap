@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -16,7 +18,14 @@ func getParameterDescriptions(path string, jsonPath string) []map[string]string 
 	// execute the API call
 	response, err := api.Get(path)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve snap %s\nerror: %s\n", path, err)
+		utils.PrintErrorMessage(fmt.Sprintf("could not retrieve snap %s", path), err)
+		os.Exit(1)
+	}
+
+	var status map[string]string
+	json.Unmarshal(response, &status)
+	if status["status"] != "success" {
+		utils.PrintStatus(status["status"], status["message"])
 		os.Exit(1)
 	}
 
@@ -68,7 +77,7 @@ func inputParameters(params []map[string]string) {
 func readParametersFromFile(params []map[string]string, credentialName string, credentialsFile string) {
 	contents, err := ioutil.ReadFile(credentialsFile)
 	if err != nil {
-		fmt.Printf("snap: could not read credentials file %s\nerror: %s\n", credentialsFile, err)
+		utils.PrintErrorMessage(fmt.Sprintf("could not read credentials file %s", credentialsFile), err)
 		os.Exit(1)
 	}
 

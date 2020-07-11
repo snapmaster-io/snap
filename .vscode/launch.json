@@ -11,8 +11,9 @@
       "mode": "auto",
       "program": "${workspaceFolder}/main.go",
       "env": {},
-//      "args": ["active", "logs", "1585955316987", "details", "1587147792662", "-f", "json"]
-      "args": ["active", "list"]
+//      "args": ["active", "logs", "1587457917605", "details", "1594330040085", "-f", "json"]
+//      "args": ["active", "list"]
+      "args": ["activate", "snapmaster/docker-slack"]
     }
   ]
 }

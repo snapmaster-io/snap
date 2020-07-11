@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )
@@ -28,7 +29,7 @@ var connectCmd = &cobra.Command{
 		jsonPath := fmt.Sprintf("#(provider==%s).definition.connection.connectionInfo", tool)
 		credentials := getParameterDescriptions("/connections", jsonPath)
 
-		fmt.Printf("snap: connecting %s\n", tool)
+		utils.PrintMessage(fmt.Sprintf("connecting %s", tool))
 
 		// if no credentials file supplied, prompt for parameters
 		if len(args) == 1 {
@@ -64,14 +65,14 @@ func processConnectCommand(tool string, path string, params []map[string]string)
 
 	payload, err := json.Marshal(data)
 	if err != nil {
-		fmt.Printf("snap: could not serialize payload into JSON\nerror: %s\n", err)
+		utils.PrintErrorMessage("could not serialize payload into JSON", err)
 		os.Exit(1)
 	}
 
 	// execute the API call
 	response, err := api.Post(path, payload)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
+		utils.PrintErrorMessage("could not retrieve data", err)
 		os.Exit(1)
 	}
 
@@ -84,7 +85,7 @@ func processConnectCommand(tool string, path string, params []map[string]string)
 	// if credential sets were returned, display them
 	num := gjson.GetBytes(response, "#").Int()
 	if num > 0 {
-		fmt.Printf("snap: connected %s and stored credentials\n", tool)
+		utils.PrintMessage(fmt.Sprintf("connected %s and stored credentials", tool))
 		printCredentialsTable(response, tool)
 		return
 	}

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/snapmaster-io/snap/pkg/version"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,7 @@ var versionCmd = &cobra.Command{
 
 NOTE: snap login must be called before there is an active user.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("snap: version <%s>, git hash <%s>\n", version.Version, version.GitHash)
+		utils.PrintMessage(fmt.Sprintf("version <%s>, git hash <%s>", version.Version, version.GitHash))
 	},
 }
 

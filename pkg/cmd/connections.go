@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )
@@ -52,7 +53,7 @@ var getConnectionCmd = &cobra.Command{
 		path := fmt.Sprintf("/entities/%s", connection)
 		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data\nerror: %s\n", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -68,7 +69,7 @@ var getConnectionCmd = &cobra.Command{
 		}
 
 		// other action - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 
@@ -82,7 +83,7 @@ var listConnectionsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/connections")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -98,7 +99,7 @@ var listConnectionsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 
@@ -114,14 +115,14 @@ func processConnectionCommand(path string, connection string, data map[string]in
 
 	payload, err := json.Marshal(data)
 	if err != nil {
-		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)
+		utils.PrintErrorMessage("could not serialize payload into JSON", err)
 		os.Exit(1)
 	}
 
 	// execute the API call
 	response, err := api.Post(path, payload)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data: %s\n", err)
+		utils.PrintErrorMessage("could not retrieve data", err)
 		os.Exit(1)
 	}
 
@@ -135,7 +136,7 @@ func processConnectionCommand(path string, connection string, data map[string]in
 		// if credential sets were returned, display them
 		num := gjson.GetBytes(response, "#").Int()
 		if num > 0 {
-			fmt.Printf("snap: successfully removed credential-set %s from tool %s\n", data["id"], connection)
+			utils.PrintMessage(fmt.Sprintf("successfully removed credential-set %s from tool %s", data["id"], connection))
 			printCredentialsTable(response, connection)
 			return
 		}
@@ -145,5 +146,5 @@ func processConnectionCommand(path string, connection string, data map[string]in
 	}
 
 	// other action - return the raw response
-	fmt.Printf("Raw response:\n%s\n", string(response))
+	printRawResponse(response)
 }

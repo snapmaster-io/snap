@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ var listGalleryCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/gallery")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -45,7 +45,7 @@ var listGalleryCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 

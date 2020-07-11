@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
 )
@@ -52,11 +53,11 @@ var editActiveSnapCmd = &cobra.Command{
 		activeSnapID := args[0]
 		paramsFile, err := cmd.Flags().GetString("params-file")
 		if err != nil {
-			fmt.Printf("snap: couldn't read params-file %s\nerror: %s\n", paramsFile, err)
+			utils.PrintErrorMessage(fmt.Sprintf("couldn't read params-file %s", paramsFile), err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("snap: editing the parameters of active snap %s\n", activeSnapID)
+		utils.PrintMessage(fmt.Sprintf("editing the parameters of active snap %s", activeSnapID))
 
 		var params []map[string]string
 
@@ -84,7 +85,7 @@ var getActiveSnapCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -131,7 +132,7 @@ snap active logs [active snap ID] details [log ID] will return the output for ea
 		path := fmt.Sprintf("/logs/%s", activeSnapID)
 		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -139,7 +140,7 @@ snap active logs [active snap ID] details [log ID] will return the output for ea
 		if format == "json" {
 			if len(args) > 2 && logID != "" {
 				// select the entry that matches the log ID
-				logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
+				logEntry := gjson.GetBytes(response, fmt.Sprintf("data.#(timestamp==%s)|@pretty", logID)).Raw
 				// print the log entry
 				printJSONString(logEntry)
 			} else {
@@ -166,7 +167,7 @@ var listActiveSnapsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/activesnaps")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -182,7 +183,7 @@ var listActiveSnapsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 
@@ -234,14 +235,14 @@ func processActiveCommand(activeSnapID string, action string) {
 	data["snapId"] = activeSnapID
 	payload, err := json.Marshal(data)
 	if err != nil {
-		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)
+		utils.PrintErrorMessage("could not serialize payload into JSON", err)
 		os.Exit(1)
 	}
 
 	// execute the API call
 	response, err := api.Post(path, payload)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data: %s\n", err)
+		utils.PrintErrorMessage("could not retrieve data", err)
 		os.Exit(1)
 	}
 
@@ -263,7 +264,7 @@ func processGetLogDetailsCommand(activeSnapID string, logID string) {
 	path := fmt.Sprintf("/logs/%s/%s", activeSnapID, logID)
 	response, err := api.Get(path)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data: %s", err)
+		utils.PrintErrorMessage("could not retrieve data", err)
 		os.Exit(1)
 	}
 

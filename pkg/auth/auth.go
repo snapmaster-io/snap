@@ -16,6 +16,7 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/snapmaster-io/snap/pkg/config"
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/viper"
 	"gopkg.in/square/go-jose.v2/jwt"
 )
@@ -45,7 +46,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		// get the authorization code
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			fmt.Println("snap: Url Param 'code' is missing")
+			utils.PrintError("Url Param 'code' is missing")
 			io.WriteString(w, "Error: could not find 'code' URL parameter\n")
 
 			// close the HTTP server and return
@@ -57,7 +58,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		codeVerifier := CodeVerifier.String()
 		responseData, err := getAccessToken(clientID, codeVerifier, code, redirectURL)
 		if err != nil {
-			fmt.Println("snap: could not get access token")
+			utils.PrintError("could not get access token")
 			io.WriteString(w, "Error: could not retrieve access token\n")
 
 			// close the HTTP server and return
@@ -86,7 +87,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		if len(filename) < 1 {
 			filename, err = config.WriteConfigFile("config.json", []byte(""))
 			if err != nil {
-				fmt.Println("snap: could not write config file to $HOME/.config/snap/config.json")
+				utils.PrintError("could not write config file to $HOME/.config/snap/config.json")
 				os.Exit(1)
 			}
 		}
@@ -94,7 +95,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 		// store the config
 		err = viper.WriteConfig()
 		if err != nil {
-			fmt.Println("snap: could not write config file")
+			utils.PrintError("could not write config file")
 			io.WriteString(w, "Error: could not store access token\n")
 
 			// close the HTTP server and return
@@ -122,7 +123,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 			</body>
 		</html>`)
 
-		fmt.Println("Successfully logged into snapmaster API.")
+		utils.PrintMessage("successfully logged into snapmaster-api!")
 
 		// close the HTTP server
 		cleanup(server)
@@ -131,7 +132,7 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 	// parse the redirect URL for the port number
 	u, err := url.Parse(redirectURL)
 	if err != nil {
-		fmt.Printf("snap: bad redirect URL: %s\n", err)
+		utils.PrintError(fmt.Sprintf("bad redirect URL\nerror:%s\n", err))
 		os.Exit(1)
 	}
 
@@ -139,14 +140,14 @@ func AuthorizeUser(clientID string, authDomain string, redirectURL string) {
 	port := fmt.Sprintf(":%s", u.Port())
 	l, err := net.Listen("tcp", port)
 	if err != nil {
-		fmt.Printf("snap: can't listen to port %s: %s\n", port, err)
+		utils.PrintError(fmt.Sprintf("can't listen to port %s\nerror: %s\n", port, err))
 		os.Exit(1)
 	}
 
 	// open a browser window to the authorizationURL
 	err = open.Start(authorizationURL)
 	if err != nil {
-		fmt.Printf("snap: can't open browser to URL %s: %s\n", authorizationURL, err)
+		utils.PrintError(fmt.Sprintf("can't open browser to URL %s\nerror: %s\n", authorizationURL, err))
 		os.Exit(1)
 	}
 
@@ -174,8 +175,9 @@ func createProfile() {
 	email := viper.GetString("Email")
 
 	fmt.Println()
-	fmt.Printf(`Hi %s, welcome to SnapMaster!  
-First things first: please select an account (tenant) name, so we can set 
+	utils.PrintMessage(fmt.Sprintf("Hi %s, welcome to SnapMaster!", name))
+
+	fmt.Printf(`First things first: please select an account (tenant) name, so we can set 
 things up for you.
 
 Your account will be part of the namespace that will identify your snaps, 
@@ -185,7 +187,7 @@ later, so pick a good one!
 Account names must start with a letter and must be entirely composed of 
 alphanumeric characters, with a 20 character limit. 
 
-Enter account name: `, name)
+Enter account name: `)
 
 	var account string
 	valid := false
@@ -207,9 +209,9 @@ Enter account name: `, name)
 Please try another name: `, account)
 	}
 
-	message := api.CreateAccount(account)
-	if message != "success" {
-		fmt.Printf("snap: could not create account name '%s'\n", account)
+	status := api.CreateAccount(account)
+	if status != "success" {
+		utils.PrintError(fmt.Sprintf("could not create account name '%s'\n", account))
 		fmt.Printf("Please complete the account creation via the web app at %s\n", viper.GetString("APIURL"))
 		os.Exit(1)
 	}
@@ -219,15 +221,16 @@ Please try another name: `, account)
 	profile["email"] = email
 	profile["account"] = account
 
-	message = api.StoreProfile(profile)
-	if message != "success" {
-		fmt.Printf("snap: error creating profile\n")
+	status = api.StoreProfile(profile)
+	if status != "success" {
+		utils.PrintError("error creating profile")
 		fmt.Printf("Please complete the account creation via the web app at %s\n", viper.GetString("APIURL"))
 		os.Exit(1)
 	}
 
-	fmt.Printf(`Account successfully created! 
+	utils.PrintMessage("account successfully created!")
 
+	fmt.Printf(`
 Some things to try next:
 
 $ snap gallery list   # will list snaps in the gallery
@@ -259,7 +262,7 @@ func getAccessToken(clientID string, codeVerifier string, authorizationCode stri
 	req.Header.Add("content-type", "application/x-www-form-urlencoded")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Printf("snap: HTTP error: %s", err)
+		utils.PrintError(fmt.Sprintf("HTTP error: %s", err))
 		return nil, err
 	}
 
@@ -271,7 +274,7 @@ func getAccessToken(clientID string, codeVerifier string, authorizationCode stri
 	// unmarshal the json into a string map
 	err = json.Unmarshal(body, &responseData)
 	if err != nil {
-		fmt.Printf("snap: JSON error: %s", err)
+		utils.PrintError(fmt.Sprintf("JSON error: %s", err))
 		return nil, err
 	}
 
@@ -284,13 +287,13 @@ func parseJWT(tokenString string) map[string]interface{} {
 	// decode JWT token without verifying the signature
 	token, err := jwt.ParseSigned(tokenString)
 	if err != nil {
-		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+		utils.PrintError(fmt.Sprintf("could not parse JWT\nerror: %s\n", err))
 		os.Exit(1)
 	}
 
 	err = token.UnsafeClaimsWithoutVerification(&claims)
 	if err != nil {
-		fmt.Printf("snap: could not parse JWT\nerror: %s\n", err)
+		utils.PrintError(fmt.Sprintf("could not parse JWT\nerror: %s\n", err))
 		os.Exit(1)
 	}
 

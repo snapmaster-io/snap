@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -83,7 +84,7 @@ func initConfig() {
 			// Config file not found; ignore error
 		} else {
 			// Config file was found but another error was produced
-			fmt.Printf("Config file was found, error: %s\n", err)
+			utils.PrintErrorMessage("config file was found, but another error occurred", err)
 		}
 	} else {
 		// do not report non-error condition

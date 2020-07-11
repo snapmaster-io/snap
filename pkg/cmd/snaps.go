@@ -35,7 +35,7 @@ var createSnapCmd = &cobra.Command{
 		// read the file contents
 		contents, err := ioutil.ReadFile(snapFile)
 		if err != nil {
-			fmt.Printf("snap: could not read snap definition file %s\nerror: %s\n", snapFile, err)
+			utils.PrintErrorMessage(fmt.Sprintf("could not read snap definition file %s", snapFile), err)
 			os.Exit(1)
 		}
 
@@ -92,7 +92,7 @@ var getSnapCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get(path)
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -119,7 +119,7 @@ var listSnapsCmd = &cobra.Command{
 		// execute the API call
 		response, err := api.Get("/snaps")
 		if err != nil {
-			fmt.Printf("snap: could not retrieve data: %s", err)
+			utils.PrintErrorMessage("could not retrieve data", err)
 			os.Exit(1)
 		}
 
@@ -135,7 +135,7 @@ var listSnapsCmd = &cobra.Command{
 		}
 
 		// unknown format - return the raw response
-		fmt.Printf("Raw response:\n%s\n", string(response))
+		printRawResponse(response)
 	},
 }
 
@@ -189,14 +189,14 @@ func processSnapCommand(data map[string]interface{}) {
 	action := data["action"]
 	payload, err := json.Marshal(data)
 	if err != nil {
-		fmt.Printf("snap: could not serialize payload into JSON: %s\n", err)
+		utils.PrintErrorMessage("could not serialize payload into JSON", err)
 		os.Exit(1)
 	}
 
 	// execute the API call
 	response, err := api.Post(path, payload)
 	if err != nil {
-		fmt.Printf("snap: could not retrieve data: %s\n", err)
+		utils.PrintErrorMessage("could not retrieve data", err)
 		os.Exit(1)
 	}
 
