@@ -102,10 +102,7 @@ var getSnapCmd = &cobra.Command{
 			return
 		}
 
-		var snap map[string]string
-		json.Unmarshal(response, &snap)
-		text := snap["text"]
-		utils.PrintYAML(text)
+		printSnapDefinition(response)
 	},
 }
 

@@ -78,6 +78,18 @@ type Snap struct {
 	Private     bool   `json:"private"`
 }
 
+// SnapDefinition defines the text field for a snap's YAML definition
+type SnapDefinition struct {
+	Text string `json:"text"`
+}
+
+// SnapDefinitionStatus defines the wrapped SnapDefinition
+type SnapDefinitionStatus struct {
+	Status  string         `json:"status"`
+	Message string         `json:"message"`
+	Data    SnapDefinition `json:"data"`
+}
+
 // SnapStatus defines the fields to unmarshal from a create/fork/publish/unpublish operation
 type SnapStatus struct {
 	Status  string `json:"status"`
@@ -362,6 +374,22 @@ func printCredentialsTable(response []byte, connection string) {
 	t.SetStyle(tableStyle)
 	t.Style().Title.Align = text.AlignCenter
 	t.Render()
+}
+
+func printSnapDefinition(response []byte) {
+	// unmarshal into the SnapStatus struct, to get "Status" and
+	// flatten the property set of the Snap
+	var snapStatus SnapDefinitionStatus
+	json.Unmarshal(response, &snapStatus)
+
+	if snapStatus.Status == "error" {
+		utils.PrintStatus(snapStatus.Status, snapStatus.Message)
+		return
+	}
+
+	// since the operation was successful, get the snap
+	snap := snapStatus.Data
+	utils.PrintYAML(snap.Text)
 }
 
 func printSnapStatus(response []byte) {

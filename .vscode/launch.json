@@ -13,7 +13,8 @@
       "env": {},
 //      "args": ["active", "logs", "1587457917605", "details", "1594330040085", "-f", "json"]
 //      "args": ["active", "list"]
-      "args": ["activate", "snapmaster/docker-slack"]
+//      "args": ["activate", "snapmaster/docker-slack"]
+      "args": ["active", "get", "snapmaster/docker-slack"]
     }
   ]
 }

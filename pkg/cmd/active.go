@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/snapmaster-io/snap/pkg/api"
 	"github.com/snapmaster-io/snap/pkg/utils"
@@ -80,6 +81,11 @@ var getActiveSnapCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// retrieve activeSnapID as the first argument
 		activeSnapID := args[0]
+
+		if strings.Contains(activeSnapID, "/") {
+			utils.PrintError("active snap ID cannot contain a '/'")
+			os.Exit(1)
+		}
 		path := fmt.Sprintf("/activesnaps/%s", activeSnapID)
 
 		// execute the API call
