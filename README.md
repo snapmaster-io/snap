@@ -28,7 +28,7 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 `snap init` will create a config file (defaults to $HOME/.config/snap/config.json).  This has the most important configuration for snap:
 
-* API URL: the URL for the API.  Currently defaults to https://dev.snapmaster.io
+* API URL: the URL for the API.  Currently defaults to https://www.snapmaster.io
 * Client ID: the OAuth2 Client ID for the app.
 * Redirect URL: This is the localhost URL where snap expects the OAuth2 callback.  Defaults to http://localhost:8085
 * Auth Domain: the OAuth2 server that will handle the PKCE flow. Defaults to snapmaster-dev.auth0.com
@@ -37,7 +37,10 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 ### Logging in
 
-`snap login` will initiate the login flow.  Note that you must have an account provisioned already on the SnapMaster web app for this to work.  
+`snap login` will initiate the login flow.  If you don't have a SnapMaster 
+account, you can create one.  
+
+`snap logout` will remove the API access token and log out the current user.
 
 ### Snap management
 
@@ -45,7 +48,7 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 `snap gallery` will retrieve all the snaps in the gallery
 
-`snap gallery get {snapname}` will get the description of a snap
+`snap gallery get {snapname}` will get the YAML description of a snap
 
 `snap snaps fork {snapname}` will fork a public snap into the user's account
 
@@ -53,7 +56,7 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 `snap snaps list` will list all snaps in the user's account
 
-`snap snaps get {snapname}` will get the description of a snap
+`snap snaps get {snapname}` will get the YAML description of a snap
 
 `snap snaps list --format=json | jq '.[] | .snapId'` will grab the user's snaps in JSON format and pipe through jq, returning a list of the snapId's 
 
@@ -63,9 +66,15 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 
 #### Activating and managing active snaps
 
+`snap activate {snapname}` will prompt for parameters and activate a snap
+
 `snap active list` will list all activated snaps 
 
 `snap active get {active snap ID}` will get information about the active snap
+
+`snap active logs {active snap ID}` will get all logs for the active snap
+
+`snap active logs {active snap ID} details {log ID}` will retrieve log details for a particular log entry
 
 `snap active pause/resume {active snap ID}` will pause or resume an active snap
 
@@ -84,6 +93,8 @@ If you have go installed: `go get github.com/snapmaster-io/snap`
 ####   `auth`: handle the PKCE authorization flow
 ####   `cmd`: cobra command implementations
 ####   `config`: config reading and writing
+####   `print`: printing out API responses in all supported formats for all API's
+####   `utils`: color-printing support and other generic utilities
 ####   `version`: version information, with an injectable git hash
 
 ## Implementation notes
