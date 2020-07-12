@@ -55,8 +55,6 @@ func CredentialsTable(response []byte, connection string) {
 	}
 
 	credentials := credentialsResponse.Data
-	//var credentials []map[string]string
-	//json.Unmarshal(response, &credentials)
 
 	// write out the table
 	t := table.NewWriter()
