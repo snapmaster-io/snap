@@ -113,7 +113,6 @@ func SnapsTable(response []byte) {
 	t.SetTitle("Snaps")
 	t.AppendHeader(table.Row{"Snap ID", "Description", "Trigger"})
 	for _, snap := range snaps {
-		//t.AppendRow(table.Row{snap["snapId"], snap["description"], snap["provider"]})
 		t.AppendRow(table.Row{snap.SnapID, snap.Description, snap.Provider})
 	}
 	t.SetStyle(tableStyle)
