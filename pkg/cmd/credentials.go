@@ -38,7 +38,7 @@ var credentialsAddCmd = &cobra.Command{
 		tool := args[0]
 
 		// retrieve the parameter definitions from the API
-		jsonPath := fmt.Sprintf("#(provider==%s).definition.connection.connectionInfo", tool)
+		jsonPath := fmt.Sprintf("data.#(provider==%s).definition.connection.connectionInfo", tool)
 		credentials := getParameterDescriptions("/connections", jsonPath)
 
 		utils.PrintMessage(fmt.Sprintf("adding credential-set for %s", tool))

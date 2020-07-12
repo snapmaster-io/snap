@@ -135,7 +135,7 @@ func processConnectionCommand(path string, connection string, data map[string]in
 
 	if action == "remove" {
 		// if credential sets were returned, display them
-		num := gjson.GetBytes(response, "#").Int()
+		num := gjson.GetBytes(response, "data.#").Int()
 		if num > 0 {
 			utils.PrintMessage(fmt.Sprintf("successfully removed credential-set %s from tool %s", data["id"], connection))
 			print.CredentialsTable(response, connection)

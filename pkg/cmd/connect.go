@@ -27,7 +27,7 @@ var connectCmd = &cobra.Command{
 		tool := args[0]
 
 		// retrieve the parameter definitions from the connections API
-		jsonPath := fmt.Sprintf("#(provider==%s).definition.connection.connectionInfo", tool)
+		jsonPath := fmt.Sprintf("data.#(provider==%s).definition.connection.connectionInfo", tool)
 		credentials := getParameterDescriptions("/connections", jsonPath)
 
 		utils.PrintMessage(fmt.Sprintf("connecting %s", tool))
@@ -84,7 +84,7 @@ func processConnectCommand(tool string, path string, params []map[string]string)
 	}
 
 	// if credential sets were returned, display them
-	num := gjson.GetBytes(response, "#").Int()
+	num := gjson.GetBytes(response, "data.#").Int()
 	if num > 0 {
 		utils.PrintMessage(fmt.Sprintf("connected %s and stored credentials", tool))
 		print.CredentialsTable(response, tool)

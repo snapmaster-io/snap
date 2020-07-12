@@ -148,6 +148,12 @@ snap active logs [active snap ID] details [log ID] will return the output for ea
 			if len(args) > 2 && logID != "" {
 				// select the entry that matches the log ID
 				logEntry := gjson.GetBytes(response, fmt.Sprintf("data.#(timestamp==%s)|@pretty", logID)).Raw
+
+				if logEntry == "" {
+					utils.PrintError(fmt.Sprintf("log ID %s not found for active snap ID %s", logID, activeSnapID))
+					return
+				}
+
 				// print the log entry
 				print.JSONString(logEntry)
 			} else {

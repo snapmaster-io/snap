@@ -40,19 +40,23 @@ var getToolCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
+		// select the entry that matches the provider name
+		toolDescription := gjson.GetBytes(response, fmt.Sprintf("data.#(provider==%s)|@pretty", tool))
+		if toolDescription.Raw == "" {
+			utils.PrintError(fmt.Sprintf("tool %s not found", tool))
+			return
+		}
+
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			// select the entry that matches the provider name
-			toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s)|@pretty", tool)).Raw
-			// print the tool description
-			print.JSONString(toolDescription)
+			print.JSONString(toolDescription.Raw)
 			return
 		}
 
 		// select the entry that matches the provider name
-		toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s).definition.text", tool)).Value()
+		description := gjson.GetBytes(response, fmt.Sprintf("data.#(provider==%s).definition.text", tool)).Value()
 		// print the tool description
-		utils.PrintYAML(toolDescription.(string))
+		utils.PrintYAML(description.(string))
 	},
 }
 

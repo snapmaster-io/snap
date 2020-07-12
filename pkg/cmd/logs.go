@@ -60,7 +60,13 @@ var logDetailsCmd = &cobra.Command{
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
 			// select the entry that matches the log ID
-			logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
+			logEntry := gjson.GetBytes(response, fmt.Sprintf("data.#(timestamp==%s)|@pretty", logID)).Raw
+
+			if logEntry == "" {
+				utils.PrintError(fmt.Sprintf("log ID %s not found", logID))
+				return
+			}
+
 			// print the log entry
 			print.JSONString(logEntry)
 			return
