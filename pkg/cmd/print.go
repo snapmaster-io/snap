@@ -1,15 +1,9 @@
 package cmd
 
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"strconv"
-	"time"
+/*
 
+import (
 	"github.com/jedib0t/go-pretty/table"
-	"github.com/jedib0t/go-pretty/text"
-	"github.com/snapmaster-io/snap/pkg/utils"
 )
 
 // ActiveSnap defines the fields to print for an activeSnap
@@ -102,6 +96,21 @@ type SnapsStatus struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
 	Data    []Snap `json:"data"`
+}
+
+// ToolsStatus defines the fields to unmarshal from a pause/resume operation
+type ToolsStatus struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Data    []Tool `json:"data"`
+}
+
+// Tool defines the fields to print for a snap
+type Tool struct {
+	SnapID      string `json:"snapId"`
+	Description string `json:"description"`
+	Provider    string `json:"provider"`
+	Private     bool   `json:"private"`
 }
 
 // what style to use for all tables
@@ -339,7 +348,6 @@ func printActiveSnapsTable(response []byte) {
 	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
-
 func printConnectionsTable(response []byte) {
 	var tools []map[string]string
 	json.Unmarshal(response, &tools)
@@ -452,7 +460,6 @@ func printStatus(response []byte) {
 
 	utils.PrintStatus(snapStatus.Status, snapStatus.Message)
 }
-
 func printToolsTable(response []byte) {
 	var tools []map[string]string
 	json.Unmarshal(response, &tools)
@@ -470,3 +477,4 @@ func printToolsTable(response []byte) {
 	t.Style().Title.Align = text.AlignCenter
 	t.Render()
 }
+*/

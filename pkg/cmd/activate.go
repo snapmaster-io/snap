@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -80,11 +81,11 @@ func processActivateCommand(snapID string, action string, params []map[string]st
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
-	printActiveSnapStatus(response)
+	print.ActiveSnapStatusTable(response)
 }
 
 func obtainSnapParameters(snapID string, path string, jsonPath string) []map[string]string {

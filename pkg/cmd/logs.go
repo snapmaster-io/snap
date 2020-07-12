@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
@@ -25,17 +26,17 @@ var logsCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printActiveSnapLogs(response)
+			print.ActiveSnapLogsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
@@ -61,17 +62,17 @@ var logDetailsCmd = &cobra.Command{
 			// select the entry that matches the log ID
 			logEntry := gjson.GetBytes(response, fmt.Sprintf("#(timestamp==%s)|@pretty", logID)).Raw
 			// print the log entry
-			printJSONString(logEntry)
+			print.JSONString(logEntry)
 			return
 		}
 
 		if format == "table" {
-			printActiveSnapLogDetails(response, logID, format)
+			print.ActiveSnapLogDetails(response, logID, format)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 

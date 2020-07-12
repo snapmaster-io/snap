@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
@@ -97,11 +98,11 @@ var getActiveSnapCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
-		printActiveSnap(response)
+		print.ActiveSnapTable(response)
 	},
 }
 
@@ -148,17 +149,17 @@ snap active logs [active snap ID] details [log ID] will return the output for ea
 				// select the entry that matches the log ID
 				logEntry := gjson.GetBytes(response, fmt.Sprintf("data.#(timestamp==%s)|@pretty", logID)).Raw
 				// print the log entry
-				printJSONString(logEntry)
+				print.JSONString(logEntry)
 			} else {
-				printJSON(response)
+				print.JSON(response)
 			}
 			return
 		}
 
 		if len(args) > 2 && logID != "" {
-			printActiveSnapLogDetails(response, logID, format)
+			print.ActiveSnapLogDetails(response, logID, format)
 		} else {
-			printActiveSnapLogs(response)
+			print.ActiveSnapLogsTable(response)
 		}
 	},
 }
@@ -179,17 +180,17 @@ var listActiveSnapsCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printActiveSnapsTable(response)
+			print.ActiveSnapsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
@@ -254,14 +255,14 @@ func processActiveCommand(activeSnapID string, action string) {
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
 	if action != "deactivate" {
-		printActiveSnapStatus(response)
+		print.ActiveSnapStatusTable(response)
 	} else {
-		printStatus(response)
+		print.Status(response)
 	}
 }
 
@@ -276,9 +277,9 @@ func processGetLogDetailsCommand(activeSnapID string, logID string) {
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
-	printActiveSnapLogDetails(response, logID, format)
+	print.ActiveSnapLogDetails(response, logID, format)
 }

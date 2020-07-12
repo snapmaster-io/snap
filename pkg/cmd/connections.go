@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
@@ -59,17 +60,17 @@ var getConnectionCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printCredentialsTable(response, connection)
+			print.CredentialsTable(response, connection)
 			return
 		}
 
 		// other action - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
@@ -89,17 +90,17 @@ var listConnectionsCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printConnectionsTable(response)
+			print.ConnectionsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
@@ -128,7 +129,7 @@ func processConnectionCommand(path string, connection string, data map[string]in
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
@@ -137,14 +138,14 @@ func processConnectionCommand(path string, connection string, data map[string]in
 		num := gjson.GetBytes(response, "#").Int()
 		if num > 0 {
 			utils.PrintMessage(fmt.Sprintf("successfully removed credential-set %s from tool %s", data["id"], connection))
-			printCredentialsTable(response, connection)
+			print.CredentialsTable(response, connection)
 			return
 		}
 
-		printStatus(response)
+		print.Status(response)
 		return
 	}
 
 	// other action - return the raw response
-	printRawResponse(response)
+	print.RawResponse(response)
 }

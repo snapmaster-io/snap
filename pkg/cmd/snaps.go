@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -98,11 +99,11 @@ var getSnapCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
-		printSnapDefinition(response)
+		print.SnapDefinitionYaml(response)
 	},
 }
 
@@ -122,17 +123,17 @@ var listSnapsCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printSnapsTable(response)
+			print.SnapsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
@@ -199,13 +200,13 @@ func processSnapCommand(data map[string]interface{}) {
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
 	if action == "delete" {
-		printStatus(response)
+		print.Status(response)
 	} else {
-		printSnapStatus(response)
+		print.SnapStatusTable(response)
 	}
 }

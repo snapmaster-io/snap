@@ -3,8 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/jedib0t/go-pretty/table"
-	"github.com/jedib0t/go-pretty/text"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -16,7 +15,7 @@ var configCmd = &cobra.Command{
 	Short: "Get and set config information",
 	Long:  `Get and set config information.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		printConfig()
+		print.Config()
 	},
 }
 
@@ -26,7 +25,7 @@ var configGetCmd = &cobra.Command{
 	Short: "Print out config information",
 	Long:  `Print out config information.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		printConfig()
+		print.Config()
 	},
 }
 
@@ -45,7 +44,7 @@ var configSetCmd = &cobra.Command{
 			utils.PrintMessage("updated config file")
 		}
 
-		printConfig()
+		print.Config()
 	},
 }
 
@@ -68,7 +67,7 @@ var configSetDevCmd = &cobra.Command{
 			utils.PrintMessage("updated config file")
 		}
 
-		printConfig()
+		print.Config()
 	},
 }
 
@@ -91,7 +90,7 @@ var configSetProdCmd = &cobra.Command{
 			utils.PrintMessage("updated config file")
 		}
 
-		printConfig()
+		print.Config()
 	},
 }
 
@@ -109,24 +108,4 @@ func init() {
 	viper.BindPFlag("APIURL", configSetCmd.Flags().Lookup("api-url"))
 	viper.BindPFlag("ClientID", configSetCmd.Flags().Lookup("client-id"))
 	viper.BindPFlag("AuthDomain", configSetCmd.Flags().Lookup("auth-domain"))
-}
-
-func printConfig() {
-	configMap := map[string]string{
-		"API URL":     viper.GetString("APIURL"),
-		"Client ID":   viper.GetString("ClientID"),
-		"Auth Domain": viper.GetString("AuthDomain"),
-	}
-
-	// write out the table of properties
-	t := table.NewWriter()
-	t.SetTitle("Config Values")
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Field", "Value"})
-	for field, value := range configMap {
-		t.AppendRow(table.Row{field, value})
-	}
-	t.SetStyle(tableStyle)
-	t.Style().Title.Align = text.AlignCenter
-	t.Render()
 }

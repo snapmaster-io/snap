@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
@@ -78,7 +79,7 @@ func processConnectCommand(tool string, path string, params []map[string]string)
 
 	format, err := rootCmd.PersistentFlags().GetString("format")
 	if format == "json" {
-		printJSON(response)
+		print.JSON(response)
 		return
 	}
 
@@ -86,9 +87,9 @@ func processConnectCommand(tool string, path string, params []map[string]string)
 	num := gjson.GetBytes(response, "#").Int()
 	if num > 0 {
 		utils.PrintMessage(fmt.Sprintf("connected %s and stored credentials", tool))
-		printCredentialsTable(response, tool)
+		print.CredentialsTable(response, tool)
 		return
 	}
 
-	printStatus(response)
+	print.Status(response)
 }

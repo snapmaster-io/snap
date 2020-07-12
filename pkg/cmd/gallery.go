@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -35,17 +36,17 @@ var listGalleryCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printSnapsTable(response)
+			print.SnapsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 

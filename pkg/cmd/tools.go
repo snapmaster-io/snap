@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/snapmaster-io/snap/pkg/api"
+	"github.com/snapmaster-io/snap/pkg/print"
 	"github.com/snapmaster-io/snap/pkg/utils"
 	"github.com/spf13/cobra"
 	"github.com/tidwall/gjson"
@@ -44,7 +45,7 @@ var getToolCmd = &cobra.Command{
 			// select the entry that matches the provider name
 			toolDescription := gjson.GetBytes(response, fmt.Sprintf("#(provider==%s)|@pretty", tool)).Raw
 			// print the tool description
-			printJSONString(toolDescription)
+			print.JSONString(toolDescription)
 			return
 		}
 
@@ -71,17 +72,17 @@ var listToolsCmd = &cobra.Command{
 
 		format, err := rootCmd.PersistentFlags().GetString("format")
 		if format == "json" {
-			printJSON(response)
+			print.JSON(response)
 			return
 		}
 
 		if format == "table" {
-			printToolsTable(response)
+			print.ToolsTable(response)
 			return
 		}
 
 		// unknown format - return the raw response
-		printRawResponse(response)
+		print.RawResponse(response)
 	},
 }
 
