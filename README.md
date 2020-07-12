@@ -86,6 +86,26 @@ account, you can create one.
 
 `snap logs details {logID}` will retrieve log details for a particular log entry
 
+#### Tool and connection management
+
+`snap tools list` will retrieve all available tools and their connection state
+
+`snap tools get {toolname}` will retrieve the YAML definition of a tool
+
+`snap connect {toolname}` will connect a tool that has a 'simple' type by prompting for credentials
+
+`snap connections list` will list all connections
+
+`snap connections get {toolname}` will get credential-sets associated with the connection
+
+#### Credential management
+
+`snap connections credential-set add {toolname}` will add a new credential for the tool
+
+`snap connections credential-set list {toolname}` will list named credentials for the tool
+
+`snap connections credential-set remove {toolname} {cred-name}` will remove a credential for the tool
+
 ## Source directory structure
 
 ### `pkg`
