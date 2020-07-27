@@ -23,10 +23,18 @@ type ActiveSnapActionsLog struct {
 
 // ActiveSnapActionsLogOutput defines the fields to unmarshal for action logs
 type ActiveSnapActionsLogOutput struct {
+	Status  string                 `json:"status"`
+	Message string                 `json:"message"`
+	Data    map[string]interface{} `json:"data"`
+}
+
+/*
+type ActiveSnapActionsLogOutput struct {
 	Stdout string `json:"stdout"`
 	Stderr string `json:"stderr"`
 	Error  string `json:"error"`
 }
+*/
 
 // ActiveSnapLog defines the fields to unmarshal for an active snap's logs
 type ActiveSnapLog struct {
@@ -112,8 +120,8 @@ func ActiveSnapLogDetails(response []byte, logID string, format string) {
 	t := table.NewWriter()
 	t.SetTitle("Action log details")
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Snap ID", "Active Snap ID", "Log ID"})
-	t.AppendRow(table.Row{snapID, activeSnapID, logID})
+	t.AppendHeader(table.Row{"Snap ID", "Active Snap ID", "Log ID", "State"})
+	t.AppendRow(table.Row{snapID, activeSnapID, logID, logEntry.State})
 	t.SetStyle(tableStyle)
 	t.Style().Title.Align = text.AlignCenter
 	t.Render()
@@ -125,26 +133,19 @@ func ActiveSnapLogDetails(response []byte, logID string, format string) {
 		fmt.Println()
 		t := table.NewWriter()
 		t.SetOutputMirror(os.Stdout)
-		t.AppendHeader(table.Row{"Provider", "Action", "State"})
-		t.AppendRow(table.Row{action.Provider, action.Action, action.State})
+
+		if action.Output.Status != "success" {
+			t.AppendHeader(table.Row{"Provider", "Action", "State", "Message"})
+			t.AppendRow(table.Row{action.Provider, action.Action, action.State, action.Output.Message})
+		} else {
+			t.AppendHeader(table.Row{"Provider", "Action", "State"})
+			t.AppendRow(table.Row{action.Provider, action.Action, action.State})
+		}
 		t.SetStyle(actionTableStyle)
 		t.Render()
 
-		// write out stdout
-		t = table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		t.AppendHeader(table.Row{"Stdout"})
-		t.SetStyle(tableStyle)
-		t.Render()
-		fmt.Printf("%s\n", action.Output.Stdout)
-
-		// write out stderr
-		t = table.NewWriter()
-		t.SetOutputMirror(os.Stdout)
-		t.AppendHeader(table.Row{"Stderr"})
-		t.SetStyle(tableStyle)
-		t.Render()
-		fmt.Printf("%s\n", action.Output.Stderr)
+		// print the output of the operation
+		printOutput(action.Output)
 	}
 }
 
@@ -170,4 +171,41 @@ func extractLogs(response []byte) ([]ActiveSnapLog, error) {
 	}
 
 	return activeSnapLogs, nil
+}
+
+// print the output for the action
+func printOutput(output ActiveSnapActionsLogOutput) {
+	data := output.Data
+	if output.Status == "success" {
+		// if the action supports the stdout/stderr protocol, print those out
+		if data["stdout"] != nil || data["stderr"] != nil {
+			if data["stdout"] != nil {
+				// write out stdout
+				t := table.NewWriter()
+				t.SetOutputMirror(os.Stdout)
+				t.AppendHeader(table.Row{"Stdout"})
+				t.SetStyle(tableStyle)
+				t.Render()
+				fmt.Printf("%s\n", data["stdout"])
+			}
+
+			if data["stderr"] != nil {
+				// write out stderr
+				t := table.NewWriter()
+				t.SetOutputMirror(os.Stdout)
+				t.AppendHeader(table.Row{"Stderr"})
+				t.SetStyle(tableStyle)
+				t.Render()
+				fmt.Printf("%s\n", data["stderr"])
+			}
+		} else {
+			// print out the JSON response
+			payload, err := json.Marshal(data)
+			if err != nil {
+				utils.PrintErrorMessage("could not serialize payload into JSON", err)
+			} else {
+				utils.PrintJSON(payload)
+			}
+		}
+	}
 }
